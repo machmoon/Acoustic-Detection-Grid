@@ -6,4 +6,6 @@ google-generativeai
 python-dotenv
 paho-mqtt
 sounddevice
+flask
+flask-socketio
 

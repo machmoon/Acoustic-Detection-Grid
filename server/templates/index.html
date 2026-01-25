@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>EchoGuard: Acoustic Radar Dashboard</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+    <script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#1349ec",
+                        "background-light": "#f6f6f8",
+                        "background-dark": "#101522",
+                        "danger": "#ff4d4d",
+                    },
+                    fontFamily: {
+                        "display": ["Space Grotesk", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+    <style>
+        body { font-family: 'Space Grotesk', sans-serif; }
+        .radar-pulse {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(19, 73, 236, 0.4);
+            border: 2px solid #1349ec;
+            width: 20px;
+            height: 20px;
+            animation: pulse 2s ease-in-out infinite;
+        }
+        .alert-pulse {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(255, 77, 77, 0.4);
+            border: 2px solid #ff4d4d;
+            width: 30px;
+            height: 30px;
+            animation: alertPulse 0.5s ease-in-out infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.5); opacity: 0.5; }
+        }
+        @keyframes alertPulse {
+            0%, 100% { transform: scale(1); opacity: 1; box-shadow: 0 0 20px rgba(255,77,77,0.8); }
+            50% { transform: scale(1.3); opacity: 0.7; box-shadow: 0 0 40px rgba(255,77,77,1); }
+        }
+        .glass-grid {
+            background-image: radial-gradient(circle, #232c48 1px, transparent 1px);
+            background-size: 30px 30px;
+        }
+        .scanning-line {
+            animation: scan 3s linear infinite;
+        }
+        @keyframes scan {
+            0% { transform: translateY(-100%); }
+            100% { transform: translateY(100%); }
+        }
+        .fade-in {
+            animation: fadeIn 0.3s ease-in;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-white antialiased">
+    <div class="flex h-screen overflow-hidden">
+        <!-- Side Navigation -->
+        <aside class="w-64 border-r border-[#232c48] bg-background-light dark:bg-background-dark flex flex-col justify-between p-4 hidden lg:flex">
+            <div class="flex flex-col gap-8">
+                <div class="flex items-center gap-3">
+                    <div class="bg-primary p-2 rounded-lg">
+                        <span class="material-symbols-outlined text-white" style="font-size: 28px;">radar</span>
+                    </div>
+                    <div class="flex flex-col">
+                        <h1 class="text-white text-lg font-bold leading-none">EchoGuard</h1>
+                        <p class="text-[#92a0c9] text-xs font-medium">Acoustic Radar v1.0</p>
+                    </div>
+                </div>
+                <nav class="flex flex-col gap-2">
+                    <a class="flex items-center gap-3 px-4 py-3 rounded-xl bg-primary/10 border border-primary/20 text-white" href="#">
+                        <span class="material-symbols-outlined text-primary fill-1">dashboard</span>
+                        <span class="text-sm font-semibold">Dashboard</span>
+                    </a>
+                    <a class="flex items-center gap-3 px-4 py-3 rounded-xl text-[#92a0c9] hover:bg-[#232c48] transition-all" href="#">
+                        <span class="material-symbols-outlined">history</span>
+                        <span class="text-sm font-semibold">History</span>
+                    </a>
+                    <a class="flex items-center gap-3 px-4 py-3 rounded-xl text-[#92a0c9] hover:bg-[#232c48] transition-all" href="#">
+                        <span class="material-symbols-outlined">mic</span>
+                        <span class="text-sm font-semibold">Sensors</span>
+                    </a>
+                    <a class="flex items-center gap-3 px-4 py-3 rounded-xl text-[#92a0c9] hover:bg-[#232c48] transition-all" href="#">
+                        <span class="material-symbols-outlined">settings</span>
+                        <span class="text-sm font-semibold">Settings</span>
+                    </a>
+                </nav>
+            </div>
+            <div class="p-4 bg-[#1a1f33] rounded-xl border border-[#232c48]">
+                <div class="flex justify-between items-center mb-2">
+                    <span class="text-xs text-[#92a0c9]">MQTT Status</span>
+                    <span id="mqtt-status" class="text-xs text-yellow-400 font-bold uppercase">Connecting...</span>
+                </div>
+                <div class="w-full bg-[#232c48] h-1.5 rounded-full overflow-hidden">
+                    <div id="health-bar" class="bg-primary h-full w-[94%] transition-all"></div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="flex-1 flex flex-col overflow-y-auto">
+            <!-- Header -->
+            <header class="flex items-center justify-between border-b border-solid border-[#232c48] px-8 py-4 bg-background-light dark:bg-background-dark sticky top-0 z-10">
+                <div class="flex flex-col">
+                    <h2 class="text-white text-xl font-bold tracking-tight">Main Residence Dashboard</h2>
+                    <p class="text-[#92a0c9] text-xs">Acoustic nodes active • Real-time YAMNet Classification</p>
+                </div>
+                <div class="flex items-center gap-4">
+                    <div class="hidden md:flex flex-col items-end mr-4">
+                        <span class="text-[10px] text-[#92a0c9] uppercase font-bold tracking-widest">Last Detection</span>
+                        <span id="last-detection" class="text-primary text-sm font-mono font-bold">--</span>
+                    </div>
+                    <button id="arm-btn" onclick="toggleArm()" class="flex min-w-[140px] cursor-pointer items-center justify-center rounded-lg h-10 px-4 bg-primary text-white text-xs font-extrabold tracking-widest uppercase transition-all hover:bg-primary/80">
+                        <span class="truncate">SYSTEM ARMED</span>
+                    </button>
+                    <button onclick="testClassification()" class="flex items-center justify-center rounded-lg h-10 px-4 bg-[#232c48] text-white text-xs font-bold uppercase hover:bg-[#2d3654] transition-all">
+                        <span class="material-symbols-outlined mr-2" style="font-size: 16px;">science</span>
+                        Test
+                    </button>
+                    <button class="relative flex items-center justify-center rounded-lg h-10 w-10 bg-[#232c48] text-white">
+                        <span class="material-symbols-outlined" style="font-size: 20px;">notifications</span>
+                        <span id="notification-badge" class="absolute top-2 right-2 w-2 h-2 bg-danger rounded-full hidden"></span>
+                    </button>
+                </div>
+            </header>
+
+            <div class="p-6 grid grid-cols-12 gap-6 glass-grid">
+                <!-- Left/Center: Radar & Analytics -->
+                <div class="col-span-12 xl:col-span-8 flex flex-col gap-6">
+                    <!-- Radar Card -->
+                    <div class="bg-[#1a1f33] border border-[#232c48] rounded-2xl overflow-hidden">
+                        <div class="p-4 border-b border-[#232c48] flex justify-between items-center">
+                            <h3 class="text-white font-bold flex items-center gap-2 uppercase tracking-wider text-sm">
+                                <span class="material-symbols-outlined text-primary text-lg">track_changes</span>
+                                Live Acoustic Radar
+                            </h3>
+                            <div class="flex gap-2">
+                                <span id="sensor-status" class="px-2 py-1 rounded bg-green-500/10 text-green-400 text-[10px] font-bold">LISTENING...</span>
+                            </div>
+                        </div>
+                        <div id="radar-display" class="relative w-full aspect-[16/9] bg-[#0c0f1a] flex items-center justify-center p-8">
+                            <!-- Floor Plan -->
+                            <div class="relative w-full h-full border-2 border-primary/20 rounded-lg overflow-hidden bg-gradient-to-br from-[#0c0f1a] to-[#1a1f33]">
+                                <!-- Grid lines -->
+                                <div class="absolute inset-0 opacity-20" style="background-image: linear-gradient(#1349ec 1px, transparent 1px), linear-gradient(90deg, #1349ec 1px, transparent 1px); background-size: 50px 50px;"></div>
+                                
+                                <!-- Sensor indicators -->
+                                <div class="radar-pulse" style="top: 25%; left: 33%;"></div>
+                                <div class="radar-pulse" style="top: 66%; left: 50%;"></div>
+                                <div class="radar-pulse" style="top: 40%; left: 75%;"></div>
+                                
+                                <!-- Alert indicator (hidden by default) -->
+                                <div id="alert-indicator" class="hidden">
+                                    <div class="alert-pulse" style="top: 50%; right: 25%;"></div>
+                                    <div class="absolute bg-danger/20 border border-danger p-2 rounded backdrop-blur-sm" style="top: 50%; right: 25%; transform: translate(60px, -20px);">
+                                        <p class="text-danger text-[10px] font-bold uppercase">Sound Detected</p>
+                                        <p id="alert-class" class="text-white text-[12px] font-mono leading-none mt-1">--</p>
+                                    </div>
+                                </div>
+                                
+                                <!-- Zone labels -->
+                                <div class="absolute top-4 left-4 text-[10px] text-primary/60 uppercase font-bold">Living Room</div>
+                                <div class="absolute top-4 right-4 text-[10px] text-primary/60 uppercase font-bold">Kitchen</div>
+                                <div class="absolute bottom-4 left-4 text-[10px] text-primary/60 uppercase font-bold">Bedroom</div>
+                                <div class="absolute bottom-4 right-4 text-[10px] text-primary/60 uppercase font-bold">Patio</div>
+                            </div>
+                            
+                            <!-- Scanning line -->
+                            <div class="absolute inset-0 pointer-events-none overflow-hidden">
+                                <div class="scanning-line w-full h-1 bg-gradient-to-r from-transparent via-primary/40 to-transparent"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Analytics Section -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Classification Results -->
+                        <div class="bg-[#1a1f33] border border-[#232c48] rounded-2xl p-5">
+                            <div class="flex justify-between items-center mb-4">
+                                <h4 class="text-white text-sm font-bold uppercase tracking-wider">Top Classifications</h4>
+                                <span id="confidence-label" class="text-primary font-mono text-xs">--</span>
+                            </div>
+                            <div id="predictions-bars" class="space-y-3">
+                                <div class="text-center text-[#92a0c9] text-sm py-8">Waiting for audio...</div>
+                            </div>
+                        </div>
+
+                        <!-- Audio Info -->
+                        <div class="bg-[#1a1f33] border border-[#232c48] rounded-2xl p-5">
+                            <div class="flex justify-between items-center mb-4">
+                                <h4 class="text-white text-sm font-bold uppercase tracking-wider">Audio Analysis</h4>
+                                <span id="processing-status" class="text-xs text-[#92a0c9] font-mono">Idle</span>
+                            </div>
+                            <div class="space-y-4">
+                                <div class="flex justify-between items-center">
+                                    <span class="text-[#92a0c9] text-sm">Samples Received</span>
+                                    <span id="samples-count" class="text-white font-mono">0</span>
+                                </div>
+                                <div class="flex justify-between items-center">
+                                    <span class="text-[#92a0c9] text-sm">Sample Rate</span>
+                                    <span id="sample-rate" class="text-white font-mono">--</span>
+                                </div>
+                                <div class="flex justify-between items-center">
+                                    <span class="text-[#92a0c9] text-sm">Duration</span>
+                                    <span id="audio-duration" class="text-white font-mono">--</span>
+                                </div>
+                                <div class="flex justify-between items-center">
+                                    <span class="text-[#92a0c9] text-sm">Total Events</span>
+                                    <span id="total-events" class="text-white font-mono">0</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Sidebar: AI Summary & Events -->
+                <div class="col-span-12 xl:col-span-4 flex flex-col gap-6">
+                    <!-- AI Summary Card -->
+                    <div class="bg-gradient-to-br from-[#1349ec]/20 to-[#1a1f33] border border-primary/30 rounded-2xl overflow-hidden shadow-[0_0_30px_rgba(19,73,236,0.1)]">
+                        <div class="p-6">
+                            <div class="flex items-center gap-3 mb-4">
+                                <div class="size-10 bg-primary rounded-xl flex items-center justify-center">
+                                    <span class="material-symbols-outlined text-white">smart_toy</span>
+                                </div>
+                                <div>
+                                    <h3 class="text-white font-bold text-lg">AI Security Summary</h3>
+                                    <p class="text-primary text-xs font-bold uppercase tracking-widest">Powered by Gemini AI</p>
+                                </div>
+                            </div>
+                            <div id="ai-summary" class="bg-[#0c0f1a]/80 rounded-xl p-4 border border-[#232c48] mb-6">
+                                <p class="text-slate-200 text-sm leading-relaxed italic">
+                                    System is <span class="text-green-400 font-bold">monitoring</span>. 
+                                    Awaiting audio input from connected sensors. 
+                                    When sounds are detected, AI analysis will appear here.
+                                </p>
+                            </div>
+                            <button id="dispatch-btn" onclick="showDispatchModal()" class="w-full py-3 bg-[#232c48] text-[#92a0c9] font-bold rounded-xl transition-all flex items-center justify-center gap-2 cursor-not-allowed" disabled>
+                                <span class="material-symbols-outlined text-sm">emergency_share</span>
+                                NO ACTIVE ALERTS
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Recent Event Log -->
+                    <div class="bg-[#1a1f33] border border-[#232c48] rounded-2xl flex flex-col flex-1">
+                        <div class="p-4 border-b border-[#232c48] flex justify-between items-center">
+                            <h3 class="text-white font-bold uppercase tracking-wider text-xs">Historical Activity</h3>
+                            <button onclick="clearEvents()" class="text-danger text-[10px] font-bold uppercase hover:text-danger/80">Clear</button>
+                        </div>
+                        <div id="events-log" class="p-2 overflow-y-auto max-h-[400px]">
+                            <div class="text-center text-[#92a0c9] text-sm py-8">No events yet</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Dispatch Modal -->
+    <div id="dispatch-modal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-[#1a1f33] border border-primary/30 rounded-2xl p-8 shadow-2xl transform scale-95 opacity-0 transition-all duration-200 text-center" id="modal-content">
+            <div class="size-16 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                <span class="material-symbols-outlined text-green-400 text-4xl">check_circle</span>
+            </div>
+            <h3 class="text-white text-2xl font-bold mb-2">Dispatched</h3>
+            <p class="text-[#92a0c9] text-sm mb-6">Authorities have been notified</p>
+            <button onclick="closeDispatchModal()" class="px-8 py-3 bg-primary text-white font-bold rounded-xl hover:bg-primary/80 transition-all">
+                OK
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // WebSocket connection
+        const socket = io();
+        let eventsCount = 0;
+        let isArmed = true;
+
+        // Connection handlers
+        socket.on('connect', () => {
+            console.log('Connected to server');
+            document.getElementById('mqtt-status').textContent = 'CONNECTED';
+            document.getElementById('mqtt-status').className = 'text-xs text-green-400 font-bold uppercase';
+        });
+
+        socket.on('disconnect', () => {
+            console.log('Disconnected from server');
+            document.getElementById('mqtt-status').textContent = 'DISCONNECTED';
+            document.getElementById('mqtt-status').className = 'text-xs text-danger font-bold uppercase';
+        });
+
+        socket.on('mqtt_status', (data) => {
+            const status = document.getElementById('mqtt-status');
+            if (data.connected) {
+                status.textContent = 'MQTT CONNECTED';
+                status.className = 'text-xs text-green-400 font-bold uppercase';
+            } else {
+                status.textContent = 'MQTT ERROR';
+                status.className = 'text-xs text-danger font-bold uppercase';
+            }
+        });
+
+        // Audio received
+        socket.on('audio_received', (data) => {
+            document.getElementById('sensor-status').textContent = 'PROCESSING...';
+            document.getElementById('sensor-status').className = 'px-2 py-1 rounded bg-yellow-500/10 text-yellow-400 text-[10px] font-bold';
+            document.getElementById('processing-status').textContent = 'Classifying...';
+            document.getElementById('samples-count').textContent = data.samples.toLocaleString();
+            document.getElementById('sample-rate').textContent = (data.sample_rate / 1000).toFixed(1) + ' kHz';
+            document.getElementById('audio-duration').textContent = data.duration.toFixed(2) + 's';
+        });
+
+        // AI processing
+        socket.on('ai_processing', (data) => {
+            document.getElementById('processing-status').textContent = data.status;
+        });
+
+        // Classification result
+        socket.on('classification_result', (data) => {
+            const event = data.event;
+            const predictions = data.predictions;
+            
+            eventsCount++;
+            document.getElementById('total-events').textContent = eventsCount;
+            document.getElementById('last-detection').textContent = event.sound_class;
+            document.getElementById('processing-status').textContent = 'Complete';
+            
+            // Update sensor status
+            const sensorStatus = document.getElementById('sensor-status');
+            if (event.threat_level === 'danger') {
+                sensorStatus.textContent = 'ALERT DETECTED';
+                sensorStatus.className = 'px-2 py-1 rounded bg-danger/20 text-danger text-[10px] font-bold animate-pulse';
+                showAlert(event);
+            } else if (event.threat_level === 'warning') {
+                sensorStatus.textContent = 'WARNING';
+                sensorStatus.className = 'px-2 py-1 rounded bg-yellow-500/10 text-yellow-400 text-[10px] font-bold';
+            } else {
+                sensorStatus.textContent = 'LISTENING...';
+                sensorStatus.className = 'px-2 py-1 rounded bg-green-500/10 text-green-400 text-[10px] font-bold';
+            }
+            
+            // Update predictions bars
+            updatePredictions(predictions);
+            
+            // Update AI summary
+            if (data.ai_description) {
+                updateAISummary(event, data.ai_description);
+            }
+            
+            // Add to event log
+            addEventToLog(event);
+            
+            // Show notification badge
+            document.getElementById('notification-badge').classList.remove('hidden');
+        });
+
+        function updatePredictions(predictions) {
+            const container = document.getElementById('predictions-bars');
+            if (predictions.length === 0) {
+                container.innerHTML = '<div class="text-center text-[#92a0c9] text-sm py-8">No predictions</div>';
+                return;
+            }
+            
+            document.getElementById('confidence-label').textContent = (predictions[0].confidence * 100).toFixed(1) + '%';
+            
+            container.innerHTML = predictions.map((p, i) => {
+                const width = (p.confidence * 100).toFixed(0);
+                const color = i === 0 ? 'bg-primary' : 'bg-primary/40';
+                return `
+                    <div class="space-y-1">
+                        <div class="flex justify-between text-xs">
+                            <span class="text-white font-medium">${p.class}</span>
+                            <span class="text-[#92a0c9]">${(p.confidence * 100).toFixed(1)}%</span>
+                        </div>
+                        <div class="w-full bg-[#232c48] h-2 rounded-full overflow-hidden">
+                            <div class="${color} h-full transition-all duration-500" style="width: ${width}%"></div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function updateAISummary(event, description) {
+            const summary = document.getElementById('ai-summary');
+            const statusClass = event.threat_level === 'danger' ? 'text-danger' : 
+                               event.threat_level === 'warning' ? 'text-yellow-400' : 'text-green-400';
+            
+            summary.innerHTML = `
+                <p class="text-slate-200 text-sm leading-relaxed italic">
+                    "${description}"
+                </p>
+                <div class="mt-3 pt-3 border-t border-[#232c48]">
+                    <span class="text-[10px] text-[#92a0c9] uppercase">Detected: </span>
+                    <span class="${statusClass} text-xs font-bold uppercase">${event.sound_class}</span>
+                    <span class="text-[#92a0c9] text-xs ml-2">(${(event.confidence * 100).toFixed(0)}%)</span>
+                </div>
+            `;
+            
+            // Update dispatch button
+            const dispatchBtn = document.getElementById('dispatch-btn');
+            if (event.threat_level === 'danger') {
+                dispatchBtn.disabled = false;
+                dispatchBtn.className = 'w-full py-3 bg-danger hover:bg-danger/90 text-white font-bold rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer';
+                dispatchBtn.innerHTML = '<span class="material-symbols-outlined text-sm">emergency_share</span>DISPATCH AUTHORITIES';
+            }
+        }
+
+        function showAlert(event) {
+            const indicator = document.getElementById('alert-indicator');
+            document.getElementById('alert-class').textContent = event.sound_class;
+            indicator.classList.remove('hidden');
+            
+            // Hide after 5 seconds
+            setTimeout(() => {
+                indicator.classList.add('hidden');
+            }, 5000);
+        }
+
+        function addEventToLog(event) {
+            const log = document.getElementById('events-log');
+            
+            // Remove placeholder if present
+            if (log.querySelector('.text-center')) {
+                log.innerHTML = '';
+            }
+            
+            const iconMap = {
+                'danger': { icon: 'gavel', color: 'danger' },
+                'warning': { icon: 'warning', color: 'yellow-400' },
+                'info': { icon: 'doorbell', color: 'primary' },
+                'normal': { icon: 'nest_audio', color: 'slate-400' }
+            };
+            
+            const { icon, color } = iconMap[event.threat_level] || iconMap.normal;
+            
+            const eventHtml = `
+                <div class="flex gap-4 p-3 border-b border-[#232c48]/50 hover:bg-[#232c48]/30 transition-colors fade-in">
+                    <div class="size-8 rounded-lg bg-${color}/20 flex items-center justify-center shrink-0">
+                        <span class="material-symbols-outlined text-${color} text-lg">${icon}</span>
+                    </div>
+                    <div class="flex flex-col flex-1">
+                        <p class="text-sm text-white font-medium">${event.sound_class}</p>
+                        <p class="text-[10px] text-[#92a0c9] mt-0.5">${event.timestamp_display} • ${event.db_level}dB • ${(event.confidence * 100).toFixed(0)}%</p>
+                    </div>
+                </div>
+            `;
+            
+            log.insertAdjacentHTML('afterbegin', eventHtml);
+            
+            // Keep only last 20 events in DOM
+            const events = log.querySelectorAll('.flex.gap-4');
+            if (events.length > 20) {
+                events[events.length - 1].remove();
+            }
+        }
+
+        function toggleArm() {
+            isArmed = !isArmed;
+            const btn = document.getElementById('arm-btn');
+            if (isArmed) {
+                btn.textContent = 'SYSTEM ARMED';
+                btn.className = 'flex min-w-[140px] cursor-pointer items-center justify-center rounded-lg h-10 px-4 bg-primary text-white text-xs font-extrabold tracking-widest uppercase transition-all hover:bg-primary/80';
+            } else {
+                btn.textContent = 'SYSTEM DISARMED';
+                btn.className = 'flex min-w-[140px] cursor-pointer items-center justify-center rounded-lg h-10 px-4 bg-[#232c48] text-[#92a0c9] text-xs font-extrabold tracking-widest uppercase transition-all hover:bg-[#2d3654]';
+            }
+            socket.emit('arm_system', { armed: isArmed });
+        }
+
+        function testClassification() {
+            socket.emit('test_classification');
+        }
+
+        function clearEvents() {
+            document.getElementById('events-log').innerHTML = '<div class="text-center text-[#92a0c9] text-sm py-8">No events yet</div>';
+            eventsCount = 0;
+            document.getElementById('total-events').textContent = '0';
+            document.getElementById('notification-badge').classList.add('hidden');
+        }
+
+        function showDispatchModal() {
+            const modal = document.getElementById('dispatch-modal');
+            const content = document.getElementById('modal-content');
+            
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                content.classList.remove('scale-95', 'opacity-0');
+                content.classList.add('scale-100', 'opacity-100');
+            }, 10);
+        }
+
+        function closeDispatchModal() {
+            const modal = document.getElementById('dispatch-modal');
+            const content = document.getElementById('modal-content');
+            
+            content.classList.remove('scale-100', 'opacity-100');
+            content.classList.add('scale-95', 'opacity-0');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+            }, 200);
+        }
+
+        // Close modal on backdrop click
+        document.getElementById('dispatch-modal').addEventListener('click', (e) => {
+            if (e.target.id === 'dispatch-modal') {
+                closeDispatchModal();
+            }
+        });
+    </script>
+</body>
+</html>
+

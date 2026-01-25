@@ -12,6 +12,7 @@ import numpy as np
 import csv
 import scipy.signal
 from dotenv import load_dotenv
+import sounddevice as sd
 
 # MQTT
 try:
@@ -115,13 +116,16 @@ Provide a brief, helpful 1-2 sentence description of what this sound means in a 
     except Exception as e:
         print(f"⚠️  Gemini API error: {e}")
         return None
-
+def play_audio(wav_data_processed, sample_rate_processed):
+    print("\n Playing Audio...")
+    sd.play(wav_data_processed, sample_rate_processed)
+    sd.wait()
 # MQTT callbacks
 def on_connect(client, userdata, flags, rc):
     """Called when MQTT client connects."""
     if rc == 0:
         print("✅ Connected to MQTT broker")
-        topic = os.environ.get('MQTT_TOPIC', 'audio/raw')
+        topic = os.environ.get('MQTT_TOPIC', 'goontronics')
         client.subscribe(topic)
         print(f"📡 Subscribed to topic: {topic}")
     else:
@@ -129,17 +133,22 @@ def on_connect(client, userdata, flags, rc):
 
 def on_message(client, userdata, msg):
     """Called when a message is received on subscribed topic."""
+    print("You've got a new message")
+
+    # Default sample rate from environment (default 100kHz for STM32 ADC)
+    default_sample_rate = int(os.environ.get('AUDIO_SAMPLE_RATE', 100000))
+
     try:
         # Parse message - can be JSON with metadata or raw audio bytes
         try:
             # Try JSON format first (includes sample_rate, etc.)
             payload = json.loads(msg.payload)
             audio_bytes = bytes(payload.get('audio', payload.get('data', b'')))
-            sample_rate = payload.get('sample_rate', 16000)
+            sample_rate = payload.get('sample_rate', default_sample_rate)
         except (json.JSONDecodeError, TypeError):
-            # Raw audio bytes
+            # Raw audio bytes - use default sample rate
             audio_bytes = msg.payload
-            sample_rate = 16000  # Default assumption
+            sample_rate = default_sample_rate
         
         if len(audio_bytes) == 0:
             print("⚠️  Received empty audio data")
@@ -150,8 +159,11 @@ def on_message(client, userdata, msg):
         
         print(f"\n📥 Received {len(audio_data)} samples ({len(audio_data)/sample_rate:.2f}s @ {sample_rate}Hz)")
         
+        play_audio(audio_data, sample_rate)
         # Process 8-bit audio
         sample_rate_processed, waveform = process_8bit_audio(audio_data, sample_rate)
+
+        play_audio(waveform, sample_rate_processed)
         
         # Classify
         print("🔍 Classifying...")
@@ -199,6 +211,10 @@ def main():
     mqtt_username = os.environ.get('MQTT_USERNAME')
     mqtt_password = os.environ.get('MQTT_PASSWORD')
     client_id = os.environ.get('MQTT_CLIENT_ID', 'yamnet_classifier')
+
+    mqtt_broker = os.environ.get('MQTT_BROKER', 'test.mosquitto.org')
+    mqtt_port = int(os.environ.get('MQTT_PORT', 1883))
+    MQTT_TOPIC = os.environ.get('MQTT_TOPIC', 'goontronics')
     
     print(f"\n🔌 Connecting to MQTT broker: {mqtt_broker}:{mqtt_port}")
     

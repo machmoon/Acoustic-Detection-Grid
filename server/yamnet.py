@@ -66,7 +66,7 @@ def ensure_sample_rate(original_sample_rate, waveform, desired_sample_rate=16000
 
 # Main execution
 if __name__ == '__main__':
-    wav_file_name = 'breakin.wav'
+    wav_file_name = '/Users/patliu/Desktop/Coding/Acoustic-Detection-Grid/audio/breakin.wav'
     
     print(f"📁 Processing: {wav_file_name}")
     sample_rate, wav_data = wavfile.read(wav_file_name)
