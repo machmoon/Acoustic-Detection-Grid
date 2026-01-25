@@ -8,7 +8,7 @@
 #define UART_TX D6
 #define UART_RX D7
 
-#define UART_BUF_LENGTH 200000
+#define UART_BUF_LENGTH 32000
 
 // WiFi related parameters and setups
 const char * ssid     = "Vamsi_Phone";
@@ -16,6 +16,7 @@ const char * password = "qwertyuiop";
 
 const char * mqtt_server = "test.mosquitto.org";
 
+// mqtt topic and message
 const char * mqtt_topic = "goontronics/esp32";
 const char * mqtt_message = "gooner tech";
 
@@ -51,20 +52,30 @@ void setup() {
 
 void loop() {
   
-  publishMessage(mqtt_topic, mqtt_message);
-  delay(2000);
-  
+  //publishMessage(mqtt_topic, mqtt_message);
+  //delay(2000);
+  serialEvent1();
 }
 
 void serialEvent1() {
+  
   while(Serial1.available()) {
     uint8_t incomingByte = Serial1.read();
+    if(incomingByte > 200 || incomingByte < 60) {
+      Serial.println("Started Reading Data from UART1 into Buffer Mic 1");
+      for(uint32_t i = 0; i < UART_BUF_LENGTH; i++) {
+        while(!Serial1.available());
+        uartBufferMic_1[i] = Serial1.read(); 
+        Serial.println(uartBufferMic_1[i]);
+      }
+      Serial.println("Completed Reading Data from UART1 into Buffer Mic 1");
+    } 
   }
 }
 
 void initUART() {
   Serial1.begin(10000000, SERIAL_8N1, UART_RX, UART_TX);
-  attachInterrupt(digitalPinToInterrupt(UART_RX), serialEvent1, FALLING);
+  //attachInterrupt(digitalPinToInterrupt(UART_RX), serialEvent1, FALLING);
 }
 
 void initWiFi() {
@@ -159,4 +170,3 @@ void UARTtoFileDump() {
 }
 
 */
-
