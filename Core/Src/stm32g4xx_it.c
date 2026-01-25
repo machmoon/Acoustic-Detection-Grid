@@ -58,7 +58,9 @@
 /* External variables --------------------------------------------------------*/
 
 /* USER CODE BEGIN EV */
-extern volatile uint8_t adc_data[BUF_SIZE];
+extern volatile uint8_t adc1_data[BUF_SIZE];
+extern volatile uint8_t adc2_data[BUF_SIZE];
+extern volatile uint8_t adc3_data[BUF_SIZE];
 /* USER CODE END EV */
 
 /******************************************************************************/
@@ -209,15 +211,15 @@ void DMA1_Channel1_IRQHandler(void)
   if (LL_DMA_IsActiveFlag_HT1(DMA1)) {
     LL_DMA_ClearFlag_HT1(DMA1);
     for (uint16_t i = 0; i < BUF_SIZE/2; i++) {
-      while (!LL_LPUART_IsActiveFlag_TXE(LPUART1));
-      LL_LPUART_TransmitData8(LPUART1, adc_data[i]);
+      while (!LL_USART_IsActiveFlag_TXE(USART1));
+      LL_USART_TransmitData8(USART1, adc1_data[i]);
     }
   }
   if (LL_DMA_IsActiveFlag_TC1(DMA1)) {
     LL_DMA_ClearFlag_TC1(DMA1);
     for (uint16_t i = BUF_SIZE/2; i < BUF_SIZE; i++) {
-      while (!LL_LPUART_IsActiveFlag_TXE(LPUART1));
-      LL_LPUART_TransmitData8(LPUART1, adc_data[i]);
+      while (!LL_USART_IsActiveFlag_TXE(USART1));
+      LL_USART_TransmitData8(USART1, adc1_data[i]);
     }
   }
   LL_GPIO_ResetOutputPin(GPIOA, LL_GPIO_PIN_5);
@@ -225,6 +227,62 @@ void DMA1_Channel1_IRQHandler(void)
   /* USER CODE BEGIN DMA1_Channel1_IRQn 1 */
 
   /* USER CODE END DMA1_Channel1_IRQn 1 */
+}
+
+/**
+  * @brief This function handles DMA1 channel2 global interrupt.
+  */
+void DMA1_Channel2_IRQHandler(void)
+{
+  /* USER CODE BEGIN DMA1_Channel2_IRQn 0 */
+  LL_GPIO_SetOutputPin(GPIOA, LL_GPIO_PIN_5);
+  if (LL_DMA_IsActiveFlag_HT2(DMA1)) {
+    LL_DMA_ClearFlag_HT2(DMA1);
+    for (uint16_t i = 0; i < BUF_SIZE/2; i++) {
+      while (!LL_USART_IsActiveFlag_TXE(USART1));
+      LL_USART_TransmitData8(USART1, adc2_data[i]);
+    }
+  }
+  if (LL_DMA_IsActiveFlag_TC2(DMA1)) {
+    LL_DMA_ClearFlag_TC2(DMA1);
+    for (uint16_t i = BUF_SIZE/2; i < BUF_SIZE; i++) {
+      while (!LL_USART_IsActiveFlag_TXE(USART1));
+      LL_USART_TransmitData8(USART1, adc2_data[i]);
+    }
+  }
+  LL_GPIO_ResetOutputPin(GPIOA, LL_GPIO_PIN_5);
+  /* USER CODE END DMA1_Channel2_IRQn 0 */
+  /* USER CODE BEGIN DMA1_Channel2_IRQn 1 */
+
+  /* USER CODE END DMA1_Channel2_IRQn 1 */
+}
+
+/**
+  * @brief This function handles DMA1 channel3 global interrupt.
+  */
+void DMA1_Channel3_IRQHandler(void)
+{
+  /* USER CODE BEGIN DMA1_Channel3_IRQn 0 */
+  LL_GPIO_SetOutputPin(GPIOA, LL_GPIO_PIN_5);
+  if (LL_DMA_IsActiveFlag_HT3(DMA1)) {
+    LL_DMA_ClearFlag_HT3(DMA1);
+    for (uint16_t i = 0; i < BUF_SIZE/2; i++) {
+      while (!LL_USART_IsActiveFlag_TXE(USART1));
+      LL_USART_TransmitData8(USART1, adc3_data[i]);
+    }
+  }
+  if (LL_DMA_IsActiveFlag_TC3(DMA1)) {
+    LL_DMA_ClearFlag_TC3(DMA1);
+    for (uint16_t i = BUF_SIZE/2; i < BUF_SIZE; i++) {
+      while (!LL_USART_IsActiveFlag_TXE(USART1));
+      LL_USART_TransmitData8(USART1, adc3_data[i]);
+    }
+  }
+  LL_GPIO_ResetOutputPin(GPIOA, LL_GPIO_PIN_5);
+  /* USER CODE END DMA1_Channel3_IRQn 0 */
+  /* USER CODE BEGIN DMA1_Channel3_IRQn 1 */
+
+  /* USER CODE END DMA1_Channel3_IRQn 1 */
 }
 
 /* USER CODE BEGIN 1 */

@@ -48,7 +48,9 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-volatile uint8_t adc_data[BUF_SIZE];
+volatile uint8_t adc1_data[BUF_SIZE];
+volatile uint8_t adc2_data[BUF_SIZE];
+volatile uint8_t adc3_data[BUF_SIZE];
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -98,20 +100,46 @@ int main(void)
   MX_TIM2_Init();
   MX_TIM3_Init();
   MX_OPAMP1_Init();
+  MX_ADC2_Init();
+  MX_OPAMP2_Init();
+  MX_ADC3_Init();
+  MX_OPAMP3_Init();
   /* USER CODE BEGIN 2 */
   // OpAmp1 (buffer for ADC1)
   HAL_OPAMP_Start(&hopamp1);
+  HAL_OPAMP_Start(&hopamp2);
+  HAL_OPAMP_Start(&hopamp3);
 
   // ADC1 setup (audio channel 1)
   LL_DMA_SetPeriphAddress(DMA1, LL_DMA_CHANNEL_1, (uint32_t)&ADC1->DR);
-  LL_DMA_SetMemoryAddress(DMA1, LL_DMA_CHANNEL_1, (uint32_t)&adc_data[0]);
+  LL_DMA_SetMemoryAddress(DMA1, LL_DMA_CHANNEL_1, (uint32_t)&adc1_data[0]);
   LL_DMA_SetDataLength(DMA1, LL_DMA_CHANNEL_1, BUF_SIZE);
   LL_DMA_EnableChannel(DMA1, LL_DMA_CHANNEL_1);
   LL_DMA_EnableIT_HT(DMA1, LL_DMA_CHANNEL_1);
   LL_DMA_EnableIT_TC(DMA1, LL_DMA_CHANNEL_1);
   LL_ADC_Enable(ADC1);
   while (!LL_ADC_IsActiveFlag_ADRDY(ADC1));
+  // ADC2 setup (audio channel 2)
+  LL_DMA_SetPeriphAddress(DMA1, LL_DMA_CHANNEL_2, (uint32_t)&ADC2->DR);
+  LL_DMA_SetMemoryAddress(DMA1, LL_DMA_CHANNEL_2, (uint32_t)&adc2_data[0]);
+  LL_DMA_SetDataLength(DMA1, LL_DMA_CHANNEL_2, BUF_SIZE);
+  LL_DMA_EnableChannel(DMA1, LL_DMA_CHANNEL_2);
+  LL_DMA_EnableIT_HT(DMA1, LL_DMA_CHANNEL_2);
+  LL_DMA_EnableIT_TC(DMA1, LL_DMA_CHANNEL_2);
+  LL_ADC_Enable(ADC2);
+  while (!LL_ADC_IsActiveFlag_ADRDY(ADC2));
+  // ADC3 setup (audio channel 3)
+  LL_DMA_SetPeriphAddress(DMA1, LL_DMA_CHANNEL_3, (uint32_t)&ADC3->DR);
+  LL_DMA_SetMemoryAddress(DMA1, LL_DMA_CHANNEL_3, (uint32_t)&adc3_data[0]);
+  LL_DMA_SetDataLength(DMA1, LL_DMA_CHANNEL_3, BUF_SIZE);
+  LL_DMA_EnableChannel(DMA1, LL_DMA_CHANNEL_3);
+  LL_DMA_EnableIT_HT(DMA1, LL_DMA_CHANNEL_3);
+  LL_DMA_EnableIT_TC(DMA1, LL_DMA_CHANNEL_3);
+  LL_ADC_Enable(ADC3);
+  while (!LL_ADC_IsActiveFlag_ADRDY(ADC3));
   LL_ADC_REG_StartConversion(ADC1);
+  LL_ADC_REG_StartConversion(ADC2);
+  LL_ADC_REG_StartConversion(ADC3);
 
   // Start TIM3 (ADC1 conversion trigger)
   LL_TIM_EnableCounter(TIM3);
