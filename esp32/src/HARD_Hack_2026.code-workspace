@@ -1,0 +1,11 @@
+{
+	"folders": [
+		{
+			"name": "HardHack2026_Wifi_Connectivity",
+			"path": ".."
+		}
+	],
+	"settings": {
+		"stm32cube-ide-clangd.path": "cube"
+	}
+}
