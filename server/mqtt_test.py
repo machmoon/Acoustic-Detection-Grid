@@ -14,83 +14,10 @@ from scipy.io import wavfile
 # MQTT
 import paho.mqtt.client as mqtt
 
-# Load YAMNet components
-print("Loading YAMNet model...")
-import tensorflow as tf
-import tensorflow_hub as hub
-import csv
-import scipy.signal
-
-model = hub.load('https://tfhub.dev/google/yamnet/1')
-
-def class_names_from_csv(class_map_csv_text):
-    class_names = []
-    with tf.io.gfile.GFile(class_map_csv_text) as csvfile:
-        reader = csv.DictReader(csvfile)
-        for row in reader:
-            class_names.append(row['display_name'])
-    return class_names
-
-class_map_path = model.class_map_path().numpy()
-class_names = class_names_from_csv(class_map_path)
-print(f"✅ Loaded {len(class_names)} sound classes\n")
-
 # Config
 MQTT_BROKER = os.environ.get('MQTT_BROKER', 'test.mosquitto.org')
 MQTT_PORT = int(os.environ.get('MQTT_PORT', 1883))
 MQTT_TOPIC = os.environ.get('MQTT_TOPIC', 'audio/test/yamnet')
-
-def wav_to_8bit(wav_file):
-    """Convert WAV file to 8-bit unsigned audio data."""
-    sample_rate, wav_data = wavfile.read(wav_file)
-    
-    # Convert stereo to mono
-    if len(wav_data.shape) > 1:
-        wav_data = np.mean(wav_data, axis=1)
-    
-    # Normalize to float in [-1.0, 1.0]
-    if wav_data.dtype == np.int16:
-        wav_float = wav_data.astype(np.float32) / 32768.0
-    elif wav_data.dtype == np.int32:
-        wav_float = wav_data.astype(np.float32) / 2147483648.0
-    else:
-        wav_float = wav_data.astype(np.float32)
-        max_val = np.abs(wav_float).max()
-        if max_val > 1.0:
-            wav_float = wav_float / max_val
-    
-    # Convert to 8-bit unsigned (0-255)
-    wav_8bit = ((wav_float + 1.0) * 127.5).astype(np.uint8)
-    
-    return sample_rate, wav_8bit
-
-def process_8bit_audio(audio_data, sample_rate=16000):
-    """Convert 8-bit audio to YAMNet format."""
-    # Convert uint8 (0-255) to float32 in [-1.0, 1.0]
-    waveform_float = (audio_data.astype(np.float32) - 128.0) / 128.0
-    
-    # Resample to 16kHz if needed
-    if sample_rate != 16000:
-        desired_length = int(round(float(len(waveform_float)) / sample_rate * 16000))
-        waveform_float = scipy.signal.resample(waveform_float, desired_length)
-    
-    return waveform_float
-
-def classify_audio(waveform):
-    """Classify audio using YAMNet."""
-    scores, _, _ = model(waveform)
-    scores_np = scores.numpy()
-    mean_scores = np.mean(scores_np, axis=0)
-    
-    top_idx = mean_scores.argmax()
-    top_class = class_names[top_idx]
-    confidence = mean_scores[top_idx]
-    
-    top_5 = np.argsort(mean_scores)[::-1][:5]
-    predictions = [{'class': class_names[i], 'confidence': float(mean_scores[i])} 
-                  for i in top_5]
-    
-    return top_class, confidence, predictions
 
 # Results storage
 received_results = []
