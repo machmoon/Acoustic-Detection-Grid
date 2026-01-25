@@ -42,18 +42,27 @@ void setup() {
 void loop() {
   
   if (!client.connected()) {
-    // Reconnect to MQTT broker
-    if (client.connect("ESP32Client")) {
+  Serial.print("MQTT not connected, state=");
+  Serial.println(client.state());
+
+  String cid = "xiao-" + String((uint32_t)ESP.getEfuseMac(), HEX); // unique ID
+    if (client.connect(cid.c_str())) {
       Serial.println("Connected to MQTT broker");
-      // Subscribe to MQTT topic after reconnection
       client.subscribe("goontronics/esp32");
+    } else {
+      Serial.print("Connect failed, state=");
+      Serial.println(client.state());
+      delay(1000);
+      return; // don't try to publish
     }
   }
   
   client.loop();
 
-  client.publish("goontronics/esp32", "Hello from ESP32");
-  Serial.println("Message Published");
+  bool publishSuccess = client.publish("goontronics/esp32", "Hello from ESP32");
+
+  Serial.print("Publish state: ");
+  Serial.println(publishSuccess ? "Success" : "Failed");
   delay(2000);
   
 }
