@@ -29,17 +29,36 @@ class_names = class_names_from_csv(class_map_path)
 
 def ensure_sample_rate(original_sample_rate, waveform,
                        desired_sample_rate=16000):
-  """Resample waveform if required."""
+  """Resample waveform if required. Returns float32 in [-1.0, 1.0] range."""
   # Handle stereo audio - convert to mono
   if len(waveform.shape) > 1:
     waveform = np.mean(waveform, axis=1)
   
+  # Convert to float32 and normalize to [-1.0, 1.0] for resampling
+  if waveform.dtype == np.int16:
+    waveform_float = waveform.astype(np.float32) / 32768.0
+  elif waveform.dtype == np.int32:
+    waveform_float = waveform.astype(np.float32) / 2147483648.0
+  elif waveform.dtype in [np.float32, np.float64]:
+    # Already float, ensure in [-1.0, 1.0] range
+    max_val = np.abs(waveform).max()
+    if max_val > 1.0:
+      waveform_float = (waveform / max_val).astype(np.float32)
+    else:
+      waveform_float = waveform.astype(np.float32)
+  else:
+    waveform_float = waveform.astype(np.float32)
+  
+  # Resample if needed
   if original_sample_rate != desired_sample_rate:
-    desired_length = int(round(float(len(waveform)) /
+    desired_length = int(round(float(len(waveform_float)) /
                                original_sample_rate * desired_sample_rate))
-    waveform = scipy.signal.resample(waveform, desired_length)
-
-  return desired_sample_rate, waveform
+    print(f"Resampling from {original_sample_rate}Hz to {desired_sample_rate}Hz")
+    print(f"  Original length: {len(waveform_float)}, New length: {desired_length}")
+    waveform_float = scipy.signal.resample(waveform_float, desired_length)
+  
+  # Return as float32 (YAMNet needs this format)
+  return desired_sample_rate, waveform_float
 
 # wav_file_name = 'speech_whistling2.wav'
 # wav_file_name = 'miaow_16k.wav'
@@ -47,32 +66,50 @@ wav_file_name = 'breakin.wav'
 
 sample_rate, wav_data = wavfile.read(wav_file_name, 'rb')
 
+import sounddevice as sd
+
+# Play
+sd.play(wav_data, sample_rate)
+sd.wait()  # Wait until finished
+print(sample_rate)
+print(wav_data.shape)
+print(wav_data.dtype)
+
 # Process audio: convert stereo to mono and resample if needed
-sample_rate, wav_data = ensure_sample_rate(sample_rate, wav_data)
+sample_rate_processed, wav_data_processed = ensure_sample_rate(sample_rate, wav_data)
 
 # Show some basic information about the audio.
-duration = len(wav_data)/sample_rate
-print(f'Sample rate: {sample_rate} Hz')
+duration = len(wav_data_processed)/sample_rate_processed
+print(f'Original: {sample_rate} Hz, Processed: {sample_rate_processed} Hz')
 print(f'Total duration: {duration:.2f}s')
-print(f'Size of the input: {len(wav_data)}')
-print(f'Audio shape: {wav_data.shape}, dtype: {wav_data.dtype}')
+print(f'Size of the input: {len(wav_data_processed)}')
+print(f'Audio shape: {wav_data_processed.shape}, dtype: {wav_data_processed.dtype}')
+
+# Play processed audio (already float32 from ensure_sample_rate)
+print("\nPlaying processed audio...")
+sd.play(wav_data_processed, sample_rate_processed)
+sd.wait()
+print("Done!")
+
 
 # Listening to the wav file (keep as int16 for Audio display)
-# Convert to int16 if it's float
-if wav_data.dtype != np.int16:
-    wav_data_int16 = (wav_data * 32767).astype(np.int16)
-else:
-    wav_data_int16 = wav_data
-
-Audio(wav_data_int16, rate=sample_rate)
+# Convert float32 to int16 for IPython Audio
+wav_data_int16 = (wav_data_processed * 32767).astype(np.int16)
+Audio(wav_data_int16, rate=sample_rate_processed)
 
 """The `wav_data` needs to be normalized to values in `[-1.0, 1.0]` (as stated in the model's [documentation](https://tfhub.dev/google/yamnet/1))."""
 
-# Normalize for YAMNet model (convert to float32 in range [-1.0, 1.0])
-if wav_data.dtype == np.int16:
-    waveform = wav_data.astype(np.float32) / 32768.0
-else:
-    waveform = wav_data.astype(np.float32)
+# ensure_sample_rate now returns float32 in [-1.0, 1.0] range, perfect for YAMNet
+waveform = wav_data_processed  # Already normalized float32 from ensure_sample_rate
+
+# Verify normalization
+print(f"\n✅ Waveform ready for YAMNet:")
+print(f"   Shape: {waveform.shape}")
+print(f"   Dtype: {waveform.dtype}")
+print(f"   Range: [{waveform.min():.6f}, {waveform.max():.6f}]")
+print(f"   Sample rate: {sample_rate_processed} Hz")
+if sample_rate_processed != 16000:
+    print(f"   ⚠️  WARNING: YAMNet requires 16kHz, but got {sample_rate_processed}Hz!")
 
 """## Executing the Model
 
@@ -83,12 +120,26 @@ The spectrogram you will use to do some visualizations later.
 """
 
 # Run the model, check the output.
+print("\nRunning YAMNet classification...")
 scores, embeddings, spectrogram = model(waveform)
 
 scores_np = scores.numpy()
 spectrogram_np = spectrogram.numpy()
-infered_class = class_names[scores_np.mean(axis=0).argmax()]
-print(f'The main sound is: {infered_class}')
+mean_scores = np.mean(scores_np, axis=0)
+top_class_idx = mean_scores.argmax()
+infered_class = class_names[top_class_idx]
+confidence = mean_scores[top_class_idx]
+
+print(f'\n🎯 Classification Result:')
+print(f'   Top sound: {infered_class}')
+print(f'   Confidence: {confidence:.2%}')
+
+# Show top 5 predictions
+top_n = 5
+top_indices = np.argsort(mean_scores)[::-1][:top_n]
+print(f'\n   Top {top_n} predictions:')
+for i, idx in enumerate(top_indices, 1):
+    print(f'   {i}. {class_names[idx]:30s} {mean_scores[idx]:.2%}')
 
 """## Visualization
 
