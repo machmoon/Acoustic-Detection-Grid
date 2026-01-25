@@ -1,29 +1,23 @@
 #include <Arduino.h>
 #include <WiFi.h>
 #include <WiFiClient.h>
-#include <WiFiAP.h>
 #include <PubSubClient.h>
-#include <String.h>
-#include <stdint.h>
-#include <mqtt_client.h>
 
 #define UART_TX D6
 #define UART_RX D7
 
-#define UART_BUF_LENGTH 32000
+#define UART_BUF_LENGTH 30000
 
-// WiFi related parameters and setups
-const char * ssid     = "Vamsi_Phone";
-const char * password = "qwertyuiop";
+// WiFi credentials
+const char* ssid = "OwenLiu66";
+const char* password = "Owen451073*";
 
-const char * mqtt_server = "test.mosquitto.org";
-
-// mqtt topic and message
-const char * mqtt_topic = "goontronics/esp32";
-const char * mqtt_message = "gooner tech";
-
+// MQTT config
+const char* mqtt_server = "test.mosquitto.org";
+const char* mqtt_topic = "goontronics/esp32";
 const uint16_t mqtt_port = 1883;
 
+// Audio buffers
 uint8_t uartBufferMic_1[UART_BUF_LENGTH];
 uint8_t uartBufferMic_2[UART_BUF_LENGTH];
 uint8_t uartBufferMic_3[UART_BUF_LENGTH];
@@ -31,161 +25,167 @@ uint8_t uartBufferMic_3[UART_BUF_LENGTH];
 WiFiClient espClient;
 PubSubClient client(espClient);
 
-void serialEvent1();
+// Function declarations
+void checkForAudio();
 void initWiFi();
 void initUART();
-bool publishMessage(const char* topic, const char* message);
 bool ensureMqttConnected();
-// void initFile();
-//void UARTtoFileDump();
 
 void setup() {
-  // put your setup code here, to run once:
   pinMode(LED_BUILTIN, OUTPUT);
-
   Serial.begin(250000);
-
+  
   initUART();
-
-  //Delete it in the final:
-  delay(5000);
+  
+  delay(3000);  // Give time to open serial monitor
+  Serial.println("ESP32 Audio Node Starting...");
+  
   initWiFi();
-
+  
+  // CRITICAL: Increase MQTT buffer size for large payloads (default is only 256 bytes!)
+  client.setBufferSize(UART_BUF_LENGTH + 200);
+  Serial.print("MQTT buffer size set to: ");
+  Serial.println(UART_BUF_LENGTH + 200);
 }
 
 void loop() {
-  
+  // Keep MQTT connection alive
   client.loop();
-
+  
+  // Ensure we're connected before doing anything
   if (!ensureMqttConnected()) {
     delay(500);
     return;
   }
-
-  //publishMessage(mqtt_topic, mqtt_message);
-  //delay(2000);
-  serialEvent1();
+  
+  // Check for incoming audio data
+  checkForAudio();
 }
 
-void serialEvent1() {
-  
-  while(Serial1.available()) {
+void checkForAudio() {
+  while (Serial1.available()) {
     uint8_t incomingByte = Serial1.read();
-    if(incomingByte > 200 || incomingByte < 60) {
-      Serial.println("Started Reading Data from UART1 into Buffer Mic 1");
-      for(uint32_t i = 0; i < UART_BUF_LENGTH; i++) {
-        while(!Serial1.available());
-        uartBufferMic_1[i] = Serial1.read(); 
+    
+    // Trigger condition: byte outside normal range indicates start of audio frame
+    if (incomingByte > 185) {
+      digitalWrite(LED_BUILTIN, HIGH);  // LED on while recording
+      Serial.println("🎤 Trigger detected! Reading audio into buffer...");
+      
+      // Fill the buffer from UART
+      for (uint32_t i = 0; i < UART_BUF_LENGTH; i++) {
+        while (!Serial1.available()) {
+          // Wait for data (could add timeout here)
+        }
+        uartBufferMic_1[i] = Serial1.read();
       }
-      Serial.println("Completed Reading Data from UART1 into Buffer Mic 1");
+      
+      Serial.print("✅ Buffer full: ");
+      Serial.print(UART_BUF_LENGTH);
+      Serial.println(" bytes");
+      
+      digitalWrite(LED_BUILTIN, LOW);  // LED off
+      
+      // Ensure MQTT is connected before publishing
+      if (!ensureMqttConnected()) {
+        Serial.println("❌ MQTT not connected, dropping frame");
+        return;
+      }
+      
+      // Send frame start indicator
+      Serial.println("📤 Sending frame start signal...");
+      bool startSent = client.publish(mqtt_topic, "Goontronics Engaged");
+      if (!startSent) {
+        Serial.println("❌ Failed to send frame start");
+        return;
+      }
+      
+      client.loop();  // Process any pending MQTT work
+      delay(50);      // Small delay to ensure frame start is received first
+      
+      // Send entire audio buffer in ONE message
+      Serial.println("📤 Publishing audio buffer...");
+      unsigned long startTime = millis();
 
-      Serial.println("Publishing Data from Buffer Mic 1 to MQTT Broker");
-      for(uint32_t i = 0; i < UART_BUF_LENGTH; i++) {
-        while(!ensureMqttConnected());
-        publishMessage(mqtt_topic, (char*)&uartBufferMic_1[i]);
+      bool success = client.publish(mqtt_topic, uartBufferMic_1, UART_BUF_LENGTH);
+      
+      unsigned long elapsed = millis() - startTime;
+      
+      if (success) {
+        Serial.print("✅ Published ");
+        Serial.print(UART_BUF_LENGTH);
+        Serial.print(" bytes in ");
+        Serial.print(elapsed);
+        Serial.println("ms");
+      } else {
+        Serial.println("❌ Publish failed!");
+        Serial.println("   Check: Is buffer size set? Is MQTT connected?");
       }
-      Serial.println("Finished Publishing Data from Buffer Mic 1 to MQTT Broker");
+      
+      client.loop();  // Process any pending MQTT work
     }
   }
 }
 
 void initUART() {
   Serial1.begin(2500000, SERIAL_8N1, UART_RX, UART_TX);
-  //attachInterrupt(digitalPinToInterrupt(UART_RX), serialEvent1, FALLING);
+  Serial.println("UART1 initialized at 2.5Mbaud");
 }
 
 void initWiFi() {
   WiFi.mode(WIFI_STA);
   WiFi.disconnect();
   delay(100);
-
-  WiFi.mode(WIFI_STA);
+  
   WiFi.begin(ssid, password);
-  Serial.print("Connecting to WiFi ..");
-
+  Serial.print("Connecting to WiFi");
+  
   while (WiFi.status() != WL_CONNECTED) {
     Serial.print('.');
-    delay(1000);
+    delay(500);
   }
-
+  
   Serial.println();
-
-  Serial.print("WiFi status: "); Serial.println(WiFi.status());
-  Serial.print("IP: "); Serial.println(WiFi.localIP());
-  Serial.print("Gateway: "); Serial.println(WiFi.gatewayIP());
-  Serial.print("DNS: "); Serial.println(WiFi.dnsIP());
-
-    // Set the MQTT broker server IP address and port
+  Serial.println("✅ WiFi connected!");
+  Serial.print("   IP: ");
+  Serial.println(WiFi.localIP());
+  
+  // Setup MQTT server
   client.setServer(mqtt_server, mqtt_port);
-
-  // Connect to MQTT broker
-  while (!client.connected()) {
-    if (client.connect("ESP32Client")) {
-      Serial.println("Connected to MQTT broker");
-    } else {
-      Serial.print("Failed to connect to MQTT broker, rc=");
-      Serial.println(client.state());
-      delay(1000);
-    }
-  }
-
-  // Subscribe to MQTT topic
-  client.subscribe(mqtt_topic);
-}
-
-bool publishMessage(const char* topic, const char* message) {
-
-  bool publishSuccess = client.publish(topic, message);
-  if(!publishSuccess) {
-    Serial.println("Publish failed");
-    return false;
-  }
-
-  //Serial.print("Publish state: ");
-  //Serial.println(publishSuccess ? "Success" : "Failed");
-  return true;
+  Serial.print("   MQTT server: ");
+  Serial.println(mqtt_server);
 }
 
 bool ensureMqttConnected() {
-  if (!client.connected()) {
-  Serial.print("MQTT not connected, state=");
-  Serial.println(client.state());
+  // If already connected, return immediately
+  if (client.connected()) {
+    return true;
   }
-
-  String cid = "xiao-" + String((uint32_t)ESP.getEfuseMac(), HEX); // unique ID
-    if (client.connect(cid.c_str())) {
-      Serial.println("Connected to MQTT broker");
-      client.subscribe(mqtt_topic);
-      return true;
-    }
-
-    Serial.print("Connect failed, state=");
-    Serial.println(client.state());
-    return false; // don't try to publish
-    
-}
-
-
-/*
-void initFile() {
-  if (!LittleFS.begin(true)) {   // true = format if mount fails
-    Serial.println("LittleFS mount failed");
-    while (1);
-  }
-
-  logFile = LittleFS.open("/audio.txt", FILE_APPEND);
-  if (!logFile) {
-    Serial.println("Failed to open file");
-    while (1);
-  }
-}
   
-
-void UARTtoFileDump() {
-  while (Serial1.available()) {
-    char c = Serial1.read();
-    logFile.println(c);
+  // Not connected - try to connect
+  Serial.print("MQTT connecting...");
+  
+  // Use unique client ID based on MAC address
+  String clientId = "esp32-" + String((uint32_t)ESP.getEfuseMac(), HEX);
+  
+  if (client.connect(clientId.c_str())) {
+    Serial.println(" ✅ connected!");
+    return true;
   }
+  
+  Serial.print(" ❌ failed, rc=");
+  Serial.println(client.state());
+  /*
+    MQTT state codes:
+    -4 : MQTT_CONNECTION_TIMEOUT
+    -3 : MQTT_CONNECTION_LOST
+    -2 : MQTT_CONNECT_FAILED
+    -1 : MQTT_DISCONNECTED
+     0 : MQTT_CONNECTED
+     1 : MQTT_CONNECT_BAD_PROTOCOL
+     2 : MQTT_CONNECT_BAD_CLIENT_ID
+     3 : MQTT_CONNECT_UNAVAILABLE
+     4 : MQTT_CONNECT_BAD_CREDENTIALS
+     5 : MQTT_CONNECT_UNAUTHORIZED
+  */
+  return false;
 }
-
-*/
