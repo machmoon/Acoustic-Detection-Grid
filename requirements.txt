@@ -1,0 +1,7 @@
+tensorflow
+tensorflow-hub
+numpy
+scipy
+google-generativeai
+python-dotenv
+
