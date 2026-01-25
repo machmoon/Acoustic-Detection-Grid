@@ -44,6 +44,15 @@ try:
 except ImportError:
     ELEVENLABS_AVAILABLE = False
 
+# Sounddevice for audio playback
+try:
+    import sounddevice as sd
+    SOUNDDEVICE_AVAILABLE = True
+    print("✅ Sounddevice audio playback enabled")
+except ImportError:
+    SOUNDDEVICE_AVAILABLE = False
+    print("⚠️  Sounddevice not available: pip install sounddevice")
+
 load_dotenv()
 
 # Flask app
@@ -109,6 +118,94 @@ def get_threat_level(sound_class):
             return level
     return 'normal'
 
+# =============================================================================
+# TRIANGULATION (TDOA) - 3-Mic Array
+# =============================================================================
+# Mic positions (mm from center) - isoceles triangle: 50mm, 50mm, 60mm
+MIC_POSITIONS = {
+    'mic1': (0.0, 50.0),        # 50mm from center, top
+    'mic2': (-43.3, -25.0),     # 50mm from center, bottom-left  
+    'mic3': (51.96, -30.0),     # 60mm from center, bottom-right
+}
+SPEED_OF_SOUND = 343000  # mm/s
+
+def gcc_phat(sig1, sig2, fs=100000):
+    """
+    Generalized Cross-Correlation with Phase Transform.
+    More robust to noise and reverberation than basic correlation.
+    Returns time delay (tau) in seconds.
+    """
+    n = len(sig1) + len(sig2)
+    SIG1 = np.fft.rfft(sig1, n=n)
+    SIG2 = np.fft.rfft(sig2, n=n)
+    R = SIG1 * np.conj(SIG2)
+    R /= (np.abs(R) + 1e-10)  # Phase transform (whitening)
+    cc = np.fft.irfft(R, n=n)
+    max_shift = len(sig1) // 2
+    cc = np.concatenate((cc[-max_shift:], cc[:max_shift+1]))
+    shift = np.argmax(np.abs(cc)) - max_shift
+    tau = shift / fs
+    return tau
+
+def estimate_direction(mic1_audio, mic2_audio, mic3_audio, sample_rate=100000):
+    """
+    Estimate 2D direction to sound source using TDOA.
+    Returns dict with angle (degrees, 0°=up, clockwise) and confidence.
+    """
+    try:
+        # Get time delays between mic pairs
+        tau_12 = gcc_phat(mic1_audio, mic2_audio, sample_rate)
+        tau_13 = gcc_phat(mic1_audio, mic3_audio, sample_rate)
+        tau_23 = gcc_phat(mic2_audio, mic3_audio, sample_rate)
+        
+        # Convert to distance differences (mm)
+        d12 = tau_12 * SPEED_OF_SOUND
+        d13 = tau_13 * SPEED_OF_SOUND
+        d23 = tau_23 * SPEED_OF_SOUND
+        
+        # Mic positions
+        x1, y1 = MIC_POSITIONS['mic1']
+        x2, y2 = MIC_POSITIONS['mic2']
+        x3, y3 = MIC_POSITIONS['mic3']
+        
+        # Least-squares direction estimate
+        A = np.array([
+            [x1 - x2, y1 - y2],
+            [x1 - x3, y1 - y3],
+            [x2 - x3, y2 - y3]
+        ])
+        b = np.array([d12, d13, d23]) * 0.5
+        
+        # Solve for direction vector
+        result, residuals, _, _ = np.linalg.lstsq(A, b, rcond=None)
+        
+        # Normalize to get unit direction
+        norm = np.linalg.norm(result)
+        if norm > 0:
+            direction = result / norm
+        else:
+            direction = np.array([0, 1])
+        
+        # Convert to angle (degrees, 0° = up/north, clockwise positive)
+        angle = np.degrees(np.arctan2(direction[0], direction[1]))
+        
+        # Confidence based on residuals (lower = better fit)
+        confidence = max(0.0, min(1.0, 1.0 - (np.sum(residuals) / 1000) if len(residuals) > 0 else 0.8))
+        
+        return {
+            'angle': float(angle),
+            'direction': {'x': float(direction[0]), 'y': float(direction[1])},
+            'tdoa_us': {
+                'tau_12': float(tau_12 * 1e6),
+                'tau_13': float(tau_13 * 1e6),
+                'tau_23': float(tau_23 * 1e6)
+            },
+            'confidence': float(confidence)
+        }
+    except Exception as e:
+        print(f"⚠️  Triangulation error: {e}")
+        return None
+
 def process_8bit_audio(audio_data, sample_rate=100000, desired_sample_rate=16000):
     """Convert 8-bit audio to YAMNet format."""
     waveform_float = (audio_data.astype(np.float32) - 128.0) / 128.0
@@ -121,6 +218,32 @@ def process_8bit_audio(audio_data, sample_rate=100000, desired_sample_rate=16000
         waveform_float = scipy.signal.resample(waveform_float, desired_length)
     
     return desired_sample_rate, waveform_float
+
+def play_audio(audio_data, sample_rate=100000, playback_rate=44100):
+    """Play 8-bit audio through speakers and wait for completion."""
+    if not SOUNDDEVICE_AVAILABLE:
+        print("⚠️  Cannot play audio - sounddevice not installed")
+        return
+    
+    try:
+        # Convert 8-bit unsigned to float [-1, 1]
+        audio_float = (audio_data.astype(np.float32) - 128.0) / 128.0
+        
+        # Resample to playback rate if needed
+        if sample_rate != playback_rate:
+            num_samples = int(len(audio_float) * playback_rate / sample_rate)
+            audio_float = scipy.signal.resample(audio_float, num_samples)
+        
+        duration = len(audio_float) / playback_rate
+        print(f"🔊 Playing audio ({duration:.2f}s @ {playback_rate}Hz)...")
+        
+        # Play and wait for completion
+        sd.play(audio_float, playback_rate)
+        sd.wait()  # Block until playback is done
+        
+        print("✅ Audio playback complete")
+    except Exception as e:
+        print(f"❌ Audio playback error: {e}")
 
 def classify_audio(waveform):
     """Classify audio using YAMNet."""
@@ -183,10 +306,14 @@ def add_event(sound_class, confidence, threat_level, description=None, db_level=
 # MQTT callbacks
 mqtt_client = None
 
+# Frame tracking for ESP32
+frame_active = False
+
 def on_mqtt_connect(client, userdata, flags, rc):
     if rc == 0:
         print("✅ Connected to MQTT broker")
-        topic = os.environ.get('MQTT_TOPIC', 'goontronics')
+        # Use wildcard to catch all goontronics topics (goontronics, goontronics/esp32, etc.)
+        topic = os.environ.get('MQTT_TOPIC', 'goontronics/#')
         client.subscribe(topic)
         print(f"📡 Subscribed to: {topic}")
         socketio.emit('mqtt_status', {'connected': True})
@@ -195,33 +322,122 @@ def on_mqtt_connect(client, userdata, flags, rc):
         socketio.emit('mqtt_status', {'connected': False})
 
 def on_mqtt_message(client, userdata, msg):
-    """Process incoming MQTT audio data."""
+    """Process incoming MQTT audio data with optional triangulation."""
     default_sample_rate = int(os.environ.get('AUDIO_SAMPLE_RATE', 100000))
     
+    global frame_active
+    
     try:
-        # Parse message
+        # Check for frame start signal
         try:
-            payload = json.loads(msg.payload)
+            text_msg = msg.payload.decode('utf-8').strip()
+            if text_msg == "Goontronics Engaged":
+                print("🚀 Frame start: Goontronics Engaged - awaiting audio buffer...")
+                frame_active = True
+                socketio.emit('frame_start', {'status': 'Recording started'})
+                return
+        except:
+            pass  # Not a text message, continue processing as audio
+        
+        # Print received message info
+        print(f"📨 MQTT message received on topic: {msg.topic} ({len(msg.payload)} bytes)")
+        
+        # Parse message
+        direction = None
+        payload = None
+        
+        # Try to parse as JSON, but expect raw bytes most of the time
+        try:
+            # Only try JSON if it looks like text (starts with { or [)
+            if msg.payload and len(msg.payload) > 0:
+                first_byte = msg.payload[0]
+                if first_byte in (0x7B, 0x5B):  # '{' or '['
+                    payload = json.loads(msg.payload.decode('utf-8'))
+        except Exception:
+            payload = None  # Raw binary data, not JSON
+        
+        # === MULTI-MIC MODE ===
+        # Array format: [[mic1], [mic2], ..., [micN], sample_rate]
+        #   - payload[0:-1] = mic arrays (variable number)
+        #   - payload[-1] = sample_rate (last element)
+        # Object format: {"mic1": [...], "mic2": [...], "mic3": [...], "sample_rate": 100000}
+        is_mic_array = payload and isinstance(payload, list) and len(payload) >= 2 and isinstance(payload[0], list)
+        is_mic_object = payload and isinstance(payload, dict) and 'mic1' in payload
+        
+        if is_mic_array or is_mic_object:
+            # Extract mic data based on format
+            if is_mic_array:
+                # payload[0:-1] = mic arrays, payload[-1] = sample_rate
+                mic_arrays = payload[0:-1]  # All but last
+                sample_rate = payload[-1]    # Last element
+                num_mics = len(mic_arrays)
+                print(f"📥 Received {num_mics}-mic array: {len(mic_arrays[0])} samples @ {sample_rate}Hz")
+            else:
+                # Count mic keys (mic1, mic2, mic3, etc.)
+                mic_arrays = []
+                i = 1
+                while f'mic{i}' in payload:
+                    mic_arrays.append(payload[f'mic{i}'])
+                    i += 1
+                num_mics = len(mic_arrays)
+                sample_rate = payload.get('sample_rate', 100000)
+                print(f"📥 Received {num_mics}-mic object: {len(mic_arrays[0])} samples @ {sample_rate}Hz")
+            
+            # Convert all mics to float [-1, 1]
+            mics_float = []
+            for mic_data in mic_arrays:
+                mic_np = np.array(mic_data, dtype=np.uint8)
+                mic_f = (mic_np.astype(np.float32) - 128.0) / 128.0
+                mics_float.append(mic_f)
+            
+            # Triangulation requires at least 3 mics
+            if num_mics >= 3:
+                direction = estimate_direction(mics_float[0], mics_float[1], mics_float[2], sample_rate)
+                if direction:
+                    print(f"📍 Direction: {direction['angle']:.1f}° (confidence: {direction['confidence']:.0%})")
+                    socketio.emit('triangulation_result', direction)
+            else:
+                print(f"⚠️  Only {num_mics} mics - need 3+ for triangulation")
+            
+            # Average all mics for classification (better SNR)
+            audio_avg = np.mean(mics_float, axis=0)
+            audio_data = ((audio_avg * 128.0) + 128.0).astype(np.uint8)
+        
+        # === PRE-COMPUTED DIRECTION FROM NODE ===
+        elif payload and isinstance(payload, dict) and 'direction' in payload:
+            direction = payload['direction']
+            audio_bytes = bytes(payload.get('audio', payload.get('data', [])))
+            audio_data = np.frombuffer(audio_bytes, dtype=np.uint8)
+            sample_rate = payload.get('sample_rate', default_sample_rate)
+            print(f"📥 Received {len(audio_data)} samples with direction: {direction.get('angle', '?')}°")
+            
+        # === SINGLE MIC MODE (original) ===
+        elif payload:
             audio_bytes = bytes(payload.get('audio', payload.get('data', [])))
             if not audio_bytes and 'audio' in payload:
                 audio_bytes = bytes(payload['audio'])
+            audio_data = np.frombuffer(audio_bytes, dtype=np.uint8)
             sample_rate = payload.get('sample_rate', default_sample_rate)
-        except (json.JSONDecodeError, TypeError):
-            audio_bytes = msg.payload
-            sample_rate = default_sample_rate
+            print(f"📥 Received {len(audio_data)} samples @ {sample_rate}Hz")
+        else:
+            # === RAW BYTES FROM ESP32 (no JSON) ===
+            # Just raw uint8 ADC samples
+            audio_data = np.frombuffer(msg.payload, dtype=np.uint8)
+            sample_rate = default_sample_rate  # 100kHz
+            print(f"📥 ESP32 raw bytes: {len(audio_data)} samples @ {sample_rate}Hz")
         
-        if len(audio_bytes) == 0:
+        if len(audio_data) == 0:
             return
         
-        # Convert to numpy array
-        audio_data = np.frombuffer(audio_bytes, dtype=np.uint8)
-        
-        print(f"📥 Received {len(audio_data)} samples @ {sample_rate}Hz")
         socketio.emit('audio_received', {
             'samples': len(audio_data),
             'sample_rate': sample_rate,
-            'duration': len(audio_data) / sample_rate
+            'duration': len(audio_data) / sample_rate,
+            'has_direction': direction is not None
         })
+        
+        # Play the received audio through speakers (blocks until done)
+        play_audio(audio_data, sample_rate)
         
         # Process and classify
         _, waveform = process_8bit_audio(audio_data, sample_rate)
@@ -235,24 +451,34 @@ def on_mqtt_message(client, userdata, msg):
             socketio.emit('ai_processing', {'status': 'Analyzing with Gemini AI...'})
             description = get_gemini_description(top_class, confidence, predictions)
         
-        # Add to event log
+        # Add to event log (with direction if available)
         event = add_event(top_class, confidence, threat_level, description)
+        if direction:
+            event['direction'] = direction
         
         # Generate voice alert for threats
         voice_alert = None
         if ELEVENLABS_AVAILABLE and threat_level in ['danger', 'warning']:
             print("🔊 Generating voice alert...")
-            voice_alert = speak_alert(top_class, confidence, threat_level, event.get('zone', 'the area'))
+            # Include direction in voice alert if available
+            if direction:
+                zone = f"{direction['angle']:.0f} degrees from the sensor"
+            else:
+                zone = event.get('zone', 'the area')
+            voice_alert = speak_alert(top_class, confidence, threat_level, zone)
         
         # Broadcast to all clients
         result = {
             'event': event,
             'predictions': predictions,
             'ai_description': description,
-            'voice_alert': voice_alert  # Base64 audio or None
+            'voice_alert': voice_alert,
+            'direction': direction  # Include triangulation data
         }
         
         print(f"🎯 Classified: {top_class} ({confidence:.1%}) - {threat_level}")
+        if direction:
+            print(f"   └─ Direction: {direction['angle']:.1f}° ({direction['confidence']:.0%} confidence)")
         socketio.emit('classification_result', result)
         
     except Exception as e:
@@ -315,7 +541,15 @@ def handle_arm(data):
 
 @socketio.on('test_classification')
 def handle_test():
-    """Test classification with a dummy event."""
+    """Test classification with a dummy event including triangulation."""
+    # Simulated direction from triangulation
+    test_direction = {
+        'angle': 45.0,
+        'direction': {'x': 0.707, 'y': 0.707},
+        'tdoa_us': {'tau_12': 87.5, 'tau_13': 102.3, 'tau_23': 14.8},
+        'confidence': 0.85
+    }
+    
     event = add_event(
         'Glass (Breaking)', 
         0.94, 
@@ -323,11 +557,12 @@ def handle_test():
         'A high-frequency impact signature was detected. The sound profile matches tempered glass shattering with 94% confidence.',
         104
     )
+    event['direction'] = test_direction
     
     # Generate voice alert for test
     voice_alert = None
     if ELEVENLABS_AVAILABLE:
-        voice_alert = speak_alert('Glass breaking', 0.94, 'danger', 'the kitchen')
+        voice_alert = speak_alert('Glass breaking', 0.94, 'danger', '45 degrees from the sensor')
     
     socketio.emit('classification_result', {
         'event': event,
@@ -337,8 +572,11 @@ def handle_test():
             {'class': 'Crash', 'confidence': 0.45}
         ],
         'ai_description': event['description'],
-        'voice_alert': voice_alert
+        'voice_alert': voice_alert,
+        'direction': test_direction
     })
+    
+    print(f"🧪 Test event with direction: {test_direction['angle']}°")
 
 if __name__ == '__main__':
     # Start MQTT in background

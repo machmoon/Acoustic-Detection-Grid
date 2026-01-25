@@ -60,6 +60,33 @@
             0%, 100% { transform: scale(1); opacity: 1; box-shadow: 0 0 20px rgba(255,77,77,0.8); }
             50% { transform: scale(1.3); opacity: 0.7; box-shadow: 0 0 40px rgba(255,77,77,1); }
         }
+        .detection-ring {
+            position: absolute;
+            border-radius: 50%;
+            border: 3px solid #22c55e;
+            background: rgba(34, 197, 94, 0.3);
+            animation: detectionExpand 1.5s ease-out forwards;
+            pointer-events: none;
+        }
+        @keyframes detectionExpand {
+            0% { width: 20px; height: 20px; opacity: 1; transform: translate(-50%, -50%) scale(1); }
+            100% { width: 120px; height: 120px; opacity: 0; transform: translate(-50%, -50%) scale(1); }
+        }
+        .detection-dot {
+            position: absolute;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: #22c55e;
+            box-shadow: 0 0 20px #22c55e, 0 0 40px #22c55e;
+            animation: detectionGlow 2s ease-out forwards;
+            pointer-events: none;
+        }
+        @keyframes detectionGlow {
+            0% { opacity: 1; transform: translate(-50%, -50%) scale(1.5); }
+            50% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+            100% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
+        }
         .glass-grid {
             background-image: radial-gradient(circle, #232c48 1px, transparent 1px);
             background-size: 30px 30px;
@@ -182,6 +209,20 @@
                                     <div class="absolute bg-danger/20 border border-danger p-2 rounded backdrop-blur-sm" style="top: 50%; right: 25%; transform: translate(60px, -20px);">
                                         <p class="text-danger text-[10px] font-bold uppercase">Sound Detected</p>
                                         <p id="alert-class" class="text-white text-[12px] font-mono leading-none mt-1">--</p>
+                                    </div>
+                                </div>
+                                
+                                <!-- Direction Arrow (from triangulation) -->
+                                <div id="direction-indicator" class="absolute hidden" style="top: 50%; left: 50%; transform: translate(-50%, -50%);">
+                                    <div class="relative">
+                                        <!-- Direction arrow -->
+                                        <div id="direction-arrow" class="text-4xl transition-transform duration-300" style="filter: drop-shadow(0 0 10px rgba(19, 73, 236, 0.8));">
+                                            ➤
+                                        </div>
+                                        <!-- Angle label -->
+                                        <div class="absolute -bottom-8 left-1/2 transform -translate-x-1/2 bg-primary/20 border border-primary/40 px-2 py-1 rounded backdrop-blur-sm">
+                                            <span id="direction-angle" class="text-primary text-xs font-mono font-bold">0°</span>
+                                        </div>
                                     </div>
                                 </div>
                                 
@@ -335,6 +376,9 @@
             document.getElementById('samples-count').textContent = data.samples.toLocaleString();
             document.getElementById('sample-rate').textContent = (data.sample_rate / 1000).toFixed(1) + ' kHz';
             document.getElementById('audio-duration').textContent = data.duration.toFixed(2) + 's';
+            
+            // Show detection pulse on radar
+            showDetectionPulse();
         });
 
         // AI processing
@@ -346,6 +390,7 @@
         socket.on('classification_result', (data) => {
             const event = data.event;
             const predictions = data.predictions;
+            const direction = data.direction;
             
             eventsCount++;
             document.getElementById('total-events').textContent = eventsCount;
@@ -355,6 +400,11 @@
             // Play voice alert if available
             if (data.voice_alert) {
                 playVoiceAlert(data.voice_alert);
+            }
+            
+            // Update direction arrow if triangulation data available
+            if (direction && direction.angle !== undefined) {
+                showDirectionArrow(direction);
             }
             
             // Update sensor status
@@ -385,6 +435,44 @@
             // Show notification badge
             document.getElementById('notification-badge').classList.remove('hidden');
         });
+        
+        // Triangulation result (standalone)
+        socket.on('triangulation_result', (direction) => {
+            if (direction && direction.angle !== undefined) {
+                showDirectionArrow(direction);
+            }
+        });
+        
+        function showDirectionArrow(direction) {
+            const indicator = document.getElementById('direction-indicator');
+            const arrow = document.getElementById('direction-arrow');
+            const angleLabel = document.getElementById('direction-angle');
+            
+            // Show the indicator
+            indicator.classList.remove('hidden');
+            
+            // Rotate arrow (0° = up, positive = clockwise)
+            // CSS rotation: 0° = right, so subtract 90° to make 0° = up
+            const cssAngle = direction.angle - 90;
+            arrow.style.transform = `rotate(${cssAngle}deg)`;
+            
+            // Update angle label
+            angleLabel.textContent = `${direction.angle.toFixed(0)}°`;
+            
+            // Color based on confidence
+            if (direction.confidence > 0.7) {
+                arrow.style.color = '#1349ec'; // Primary blue
+            } else if (direction.confidence > 0.4) {
+                arrow.style.color = '#facc15'; // Yellow
+            } else {
+                arrow.style.color = '#92a0c9'; // Gray
+            }
+            
+            // Hide after 5 seconds
+            setTimeout(() => {
+                indicator.classList.add('hidden');
+            }, 5000);
+        }
 
         function updatePredictions(predictions) {
             const container = document.getElementById('predictions-bars');
@@ -447,6 +535,39 @@
                 indicator.classList.add('hidden');
             }, 5000);
         }
+        
+        function showDetectionPulse() {
+            const radar = document.querySelector('#radar-display .relative.w-full.h-full');
+            if (!radar) return;
+            
+            // Pick a random sensor location (near the existing dots)
+            const positions = [
+                { top: '25%', left: '33%' },
+                { top: '66%', left: '50%' },
+                { top: '40%', left: '75%' }
+            ];
+            const pos = positions[Math.floor(Math.random() * positions.length)];
+            
+            // Create expanding ring
+            const ring = document.createElement('div');
+            ring.className = 'detection-ring';
+            ring.style.top = pos.top;
+            ring.style.left = pos.left;
+            radar.appendChild(ring);
+            
+            // Create glowing dot
+            const dot = document.createElement('div');
+            dot.className = 'detection-dot';
+            dot.style.top = pos.top;
+            dot.style.left = pos.left;
+            radar.appendChild(dot);
+            
+            // Remove after animation completes
+            setTimeout(() => {
+                ring.remove();
+                dot.remove();
+            }, 2000);
+        }
 
         function addEventToLog(event) {
             const log = document.getElementById('events-log');
@@ -465,6 +586,9 @@
             
             const { icon, color } = iconMap[event.threat_level] || iconMap.normal;
             
+            // Direction info if available
+            const directionInfo = event.direction ? ` • ${event.direction.angle.toFixed(0)}°` : '';
+            
             const eventHtml = `
                 <div class="flex gap-4 p-3 border-b border-[#232c48]/50 hover:bg-[#232c48]/30 transition-colors fade-in">
                     <div class="size-8 rounded-lg bg-${color}/20 flex items-center justify-center shrink-0">
@@ -472,7 +596,7 @@
                     </div>
                     <div class="flex flex-col flex-1">
                         <p class="text-sm text-white font-medium">${event.sound_class}</p>
-                        <p class="text-[10px] text-[#92a0c9] mt-0.5">${event.timestamp_display} • ${event.db_level}dB • ${(event.confidence * 100).toFixed(0)}%</p>
+                        <p class="text-[10px] text-[#92a0c9] mt-0.5">${event.timestamp_display} • ${event.db_level}dB • ${(event.confidence * 100).toFixed(0)}%${directionInfo}</p>
                     </div>
                 </div>
             `;
