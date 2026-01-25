@@ -4,6 +4,8 @@
 #include <WiFiAP.h>
 #include <PubSubClient.h>
 #include <String.h>
+#include <stdint.h>
+#include <mqtt_client.h>
 
 #define UART_TX D6
 #define UART_RX D7
@@ -33,6 +35,7 @@ void serialEvent1();
 void initWiFi();
 void initUART();
 bool publishMessage(const char* topic, const char* message);
+bool ensureMqttConnected();
 // void initFile();
 //void UARTtoFileDump();
 
@@ -52,6 +55,13 @@ void setup() {
 
 void loop() {
   
+  client.loop();
+
+  if (!ensureMqttConnected()) {
+    delay(500);
+    return;
+  }
+
   //publishMessage(mqtt_topic, mqtt_message);
   //delay(2000);
   serialEvent1();
@@ -66,15 +76,21 @@ void serialEvent1() {
       for(uint32_t i = 0; i < UART_BUF_LENGTH; i++) {
         while(!Serial1.available());
         uartBufferMic_1[i] = Serial1.read(); 
-        Serial.println(uartBufferMic_1[i]);
       }
       Serial.println("Completed Reading Data from UART1 into Buffer Mic 1");
-    } 
+
+      Serial.println("Publishing Data from Buffer Mic 1 to MQTT Broker");
+      for(uint32_t i = 0; i < UART_BUF_LENGTH; i++) {
+        while(!ensureMqttConnected());
+        publishMessage(mqtt_topic, (char*)&uartBufferMic_1[i]);
+      }
+      Serial.println("Finished Publishing Data from Buffer Mic 1 to MQTT Broker");
+    }
   }
 }
 
 void initUART() {
-  Serial1.begin(10000000, SERIAL_8N1, UART_RX, UART_TX);
+  Serial1.begin(2500000, SERIAL_8N1, UART_RX, UART_TX);
   //attachInterrupt(digitalPinToInterrupt(UART_RX), serialEvent1, FALLING);
 }
 
@@ -118,23 +134,6 @@ void initWiFi() {
 }
 
 bool publishMessage(const char* topic, const char* message) {
-  if (!client.connected()) {
-  Serial.print("MQTT not connected, state=");
-  Serial.println(client.state());
-
-  String cid = "xiao-" + String((uint32_t)ESP.getEfuseMac(), HEX); // unique ID
-    if (client.connect(cid.c_str())) {
-      Serial.println("Connected to MQTT broker");
-      client.subscribe(topic);
-    } else {
-      Serial.print("Connect failed, state=");
-      Serial.println(client.state());
-      delay(1000);
-      return false; // don't try to publish
-    }
-  }
-  
-  client.loop();
 
   bool publishSuccess = client.publish(topic, message);
   if(!publishSuccess) {
@@ -146,6 +145,26 @@ bool publishMessage(const char* topic, const char* message) {
   //Serial.println(publishSuccess ? "Success" : "Failed");
   return true;
 }
+
+bool ensureMqttConnected() {
+  if (!client.connected()) {
+  Serial.print("MQTT not connected, state=");
+  Serial.println(client.state());
+  }
+
+  String cid = "xiao-" + String((uint32_t)ESP.getEfuseMac(), HEX); // unique ID
+    if (client.connect(cid.c_str())) {
+      Serial.println("Connected to MQTT broker");
+      client.subscribe(mqtt_topic);
+      return true;
+    }
+
+    Serial.print("Connect failed, state=");
+    Serial.println(client.state());
+    return false; // don't try to publish
+    
+}
+
 
 /*
 void initFile() {
