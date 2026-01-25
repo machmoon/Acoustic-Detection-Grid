@@ -31,7 +31,7 @@ void setup() {
 
   Serial.begin(250000);
   delay(5000);
-  Serial.println("Test");
+  Serial.println("Test")
 
   initUART();
 
