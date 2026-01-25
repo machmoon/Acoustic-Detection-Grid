@@ -35,6 +35,15 @@ try:
 except ImportError:
     GEMINI_AVAILABLE = False
 
+# ElevenLabs TTS
+try:
+    from elevenlabs_tts import speak_alert, ELEVENLABS_API_KEY
+    ELEVENLABS_AVAILABLE = bool(ELEVENLABS_API_KEY)
+    if ELEVENLABS_AVAILABLE:
+        print("✅ ElevenLabs voice alerts enabled")
+except ImportError:
+    ELEVENLABS_AVAILABLE = False
+
 load_dotenv()
 
 # Flask app
@@ -229,11 +238,18 @@ def on_mqtt_message(client, userdata, msg):
         # Add to event log
         event = add_event(top_class, confidence, threat_level, description)
         
+        # Generate voice alert for threats
+        voice_alert = None
+        if ELEVENLABS_AVAILABLE and threat_level in ['danger', 'warning']:
+            print("🔊 Generating voice alert...")
+            voice_alert = speak_alert(top_class, confidence, threat_level, event.get('zone', 'the area'))
+        
         # Broadcast to all clients
         result = {
             'event': event,
             'predictions': predictions,
-            'ai_description': description
+            'ai_description': description,
+            'voice_alert': voice_alert  # Base64 audio or None
         }
         
         print(f"🎯 Classified: {top_class} ({confidence:.1%}) - {threat_level}")
@@ -307,6 +323,12 @@ def handle_test():
         'A high-frequency impact signature was detected. The sound profile matches tempered glass shattering with 94% confidence.',
         104
     )
+    
+    # Generate voice alert for test
+    voice_alert = None
+    if ELEVENLABS_AVAILABLE:
+        voice_alert = speak_alert('Glass breaking', 0.94, 'danger', 'the kitchen')
+    
     socketio.emit('classification_result', {
         'event': event,
         'predictions': [
@@ -314,7 +336,8 @@ def handle_test():
             {'class': 'Breaking', 'confidence': 0.87},
             {'class': 'Crash', 'confidence': 0.45}
         ],
-        'ai_description': event['description']
+        'ai_description': event['description'],
+        'voice_alert': voice_alert
     })
 
 if __name__ == '__main__':
@@ -325,5 +348,5 @@ if __name__ == '__main__':
     print("\n🚀 Starting EchoGuard Dashboard...")
     print("   Open http://localhost:8080 in your browser\n")
     
-    socketio.run(app, host='0.0.0.0', port=8080, debug=False)
+    socketio.run(app, host='0.0.0.0', port=8080, debug=False, allow_unsafe_werkzeug=True)
 

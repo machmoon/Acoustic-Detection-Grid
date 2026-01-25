@@ -352,6 +352,11 @@
             document.getElementById('last-detection').textContent = event.sound_class;
             document.getElementById('processing-status').textContent = 'Complete';
             
+            // Play voice alert if available
+            if (data.voice_alert) {
+                playVoiceAlert(data.voice_alert);
+            }
+            
             // Update sensor status
             const sensorStatus = document.getElementById('sensor-status');
             if (event.threat_level === 'danger') {
@@ -503,6 +508,11 @@
             eventsCount = 0;
             document.getElementById('total-events').textContent = '0';
             document.getElementById('notification-badge').classList.add('hidden');
+        }
+
+        function playVoiceAlert(base64Audio) {
+            const audio = new Audio('data:audio/mpeg;base64,' + base64Audio);
+            audio.play().catch(e => console.log('Audio autoplay blocked:', e));
         }
 
         function showDispatchModal() {

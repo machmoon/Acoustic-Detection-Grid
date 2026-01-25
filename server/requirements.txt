@@ -8,4 +8,5 @@ paho-mqtt
 sounddevice
 flask
 flask-socketio
-
+requests
+elevenlabs
