@@ -128,18 +128,18 @@ int main(void)
   LL_DMA_EnableIT_TC(DMA1, LL_DMA_CHANNEL_2);
   LL_ADC_Enable(ADC2);
   while (!LL_ADC_IsActiveFlag_ADRDY(ADC2));
-  // ADC3 setup (audio channel 3)
-  LL_DMA_SetPeriphAddress(DMA1, LL_DMA_CHANNEL_3, (uint32_t)&ADC3->DR);
-  LL_DMA_SetMemoryAddress(DMA1, LL_DMA_CHANNEL_3, (uint32_t)&adc3_data[0]);
-  LL_DMA_SetDataLength(DMA1, LL_DMA_CHANNEL_3, BUF_SIZE);
-  LL_DMA_EnableChannel(DMA1, LL_DMA_CHANNEL_3);
-  LL_DMA_EnableIT_HT(DMA1, LL_DMA_CHANNEL_3);
-  LL_DMA_EnableIT_TC(DMA1, LL_DMA_CHANNEL_3);
-  LL_ADC_Enable(ADC3);
-  while (!LL_ADC_IsActiveFlag_ADRDY(ADC3));
+  // // ADC3 setup (audio channel 3)
+  // LL_DMA_SetPeriphAddress(DMA1, LL_DMA_CHANNEL_3, (uint32_t)&ADC3->DR);
+  // LL_DMA_SetMemoryAddress(DMA1, LL_DMA_CHANNEL_3, (uint32_t)&adc3_data[0]);
+  // LL_DMA_SetDataLength(DMA1, LL_DMA_CHANNEL_3, BUF_SIZE);
+  // LL_DMA_EnableChannel(DMA1, LL_DMA_CHANNEL_3);
+  // LL_DMA_EnableIT_HT(DMA1, LL_DMA_CHANNEL_3);
+  // LL_DMA_EnableIT_TC(DMA1, LL_DMA_CHANNEL_3);
+  // LL_ADC_Enable(ADC3);
+  // while (!LL_ADC_IsActiveFlag_ADRDY(ADC3));
   LL_ADC_REG_StartConversion(ADC1);
   LL_ADC_REG_StartConversion(ADC2);
-  LL_ADC_REG_StartConversion(ADC3);
+  // LL_ADC_REG_StartConversion(ADC3);
 
   // Start TIM3 (ADC1 conversion trigger)
   LL_TIM_EnableCounter(TIM3);

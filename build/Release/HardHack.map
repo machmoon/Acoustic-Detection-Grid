@@ -1092,7 +1092,7 @@ LOAD C:/PROGRA~2/ARMGNU~1/133167~1.3RE/bin/../lib/gcc/arm-none-eabi/13.3.1/thumb
                 0x08000000                g_pfnVectors
                 0x080001d8                        . = ALIGN (0x4)
 
-.text           0x080001d8     0x1ca8
+.text           0x080001d8     0x1c64
                 0x080001d8                        . = ALIGN (0x4)
  *(.text)
  .text          0x080001d8       0x30 C:/PROGRA~2/ARMGNU~1/133167~1.3RE/bin/../lib/gcc/arm-none-eabi/13.3.1/thumb/v7e-m+fp/hard\libgcc.a(_aeabi_uldivmod.o)
@@ -1199,294 +1199,294 @@ LOAD C:/PROGRA~2/ARMGNU~1/133167~1.3RE/bin/../lib/gcc/arm-none-eabi/13.3.1/thumb
                 0x08000d84       0xdc CMakeFiles/HardHack.dir/Core/Src/main.c.obj
                 0x08000d84                SystemClock_Config
  .text.startup.main
-                0x08000e60      0x19c CMakeFiles/HardHack.dir/Core/Src/main.c.obj
+                0x08000e60      0x138 CMakeFiles/HardHack.dir/Core/Src/main.c.obj
                 0x08000e60                main
  .text.Error_Handler
-                0x08000ffc        0x4 CMakeFiles/HardHack.dir/Core/Src/main.c.obj
-                0x08000ffc                Error_Handler
+                0x08000f98        0x4 CMakeFiles/HardHack.dir/Core/Src/main.c.obj
+                0x08000f98                Error_Handler
  .text.LL_AHB2_GRP1_EnableClock
-                0x08001000       0x1c CMakeFiles/HardHack.dir/Core/Src/gpio.c.obj
+                0x08000f9c       0x1c CMakeFiles/HardHack.dir/Core/Src/gpio.c.obj
  .text.MX_GPIO_Init
-                0x0800101c       0x60 CMakeFiles/HardHack.dir/Core/Src/gpio.c.obj
-                0x0800101c                MX_GPIO_Init
+                0x08000fb8       0x7c CMakeFiles/HardHack.dir/Core/Src/gpio.c.obj
+                0x08000fb8                MX_GPIO_Init
  .text.LL_AHB2_GRP1_EnableClock
-                0x0800107c       0x1c CMakeFiles/HardHack.dir/Core/Src/adc.c.obj
+                0x08001034       0x1c CMakeFiles/HardHack.dir/Core/Src/adc.c.obj
  .text.MX_ADC1_Init
-                0x08001098      0x15c CMakeFiles/HardHack.dir/Core/Src/adc.c.obj
-                0x08001098                MX_ADC1_Init
+                0x08001050      0x15c CMakeFiles/HardHack.dir/Core/Src/adc.c.obj
+                0x08001050                MX_ADC1_Init
  .text.MX_ADC2_Init
-                0x080011f4      0x148 CMakeFiles/HardHack.dir/Core/Src/adc.c.obj
-                0x080011f4                MX_ADC2_Init
+                0x080011ac      0x148 CMakeFiles/HardHack.dir/Core/Src/adc.c.obj
+                0x080011ac                MX_ADC2_Init
  .text.MX_ADC3_Init
-                0x0800133c      0x164 CMakeFiles/HardHack.dir/Core/Src/adc.c.obj
-                0x0800133c                MX_ADC3_Init
+                0x080012f4      0x164 CMakeFiles/HardHack.dir/Core/Src/adc.c.obj
+                0x080012f4                MX_ADC3_Init
  .text.NVIC_EncodePriority.constprop.0
-                0x080014a0        0x4 CMakeFiles/HardHack.dir/Core/Src/dma.c.obj
+                0x08001458        0x4 CMakeFiles/HardHack.dir/Core/Src/dma.c.obj
  .text.MX_DMA_Init
-                0x080014a4       0x88 CMakeFiles/HardHack.dir/Core/Src/dma.c.obj
-                0x080014a4                MX_DMA_Init
+                0x0800145c       0x88 CMakeFiles/HardHack.dir/Core/Src/dma.c.obj
+                0x0800145c                MX_DMA_Init
  .text.MX_LPUART1_UART_Init
-                0x0800152c       0xf8 CMakeFiles/HardHack.dir/Core/Src/usart.c.obj
-                0x0800152c                MX_LPUART1_UART_Init
+                0x080014e4       0xf8 CMakeFiles/HardHack.dir/Core/Src/usart.c.obj
+                0x080014e4                MX_LPUART1_UART_Init
  .text.MX_USART1_UART_Init
-                0x08001624      0x110 CMakeFiles/HardHack.dir/Core/Src/usart.c.obj
-                0x08001624                MX_USART1_UART_Init
+                0x080015dc      0x110 CMakeFiles/HardHack.dir/Core/Src/usart.c.obj
+                0x080015dc                MX_USART1_UART_Init
  .text.MX_OPAMP1_Init
-                0x08001734       0x34 CMakeFiles/HardHack.dir/Core/Src/opamp.c.obj
-                0x08001734                MX_OPAMP1_Init
+                0x080016ec       0x34 CMakeFiles/HardHack.dir/Core/Src/opamp.c.obj
+                0x080016ec                MX_OPAMP1_Init
  .text.MX_OPAMP2_Init
-                0x08001768       0x34 CMakeFiles/HardHack.dir/Core/Src/opamp.c.obj
-                0x08001768                MX_OPAMP2_Init
+                0x08001720       0x34 CMakeFiles/HardHack.dir/Core/Src/opamp.c.obj
+                0x08001720                MX_OPAMP2_Init
  .text.MX_OPAMP3_Init
-                0x0800179c       0x34 CMakeFiles/HardHack.dir/Core/Src/opamp.c.obj
-                0x0800179c                MX_OPAMP3_Init
+                0x08001754       0x34 CMakeFiles/HardHack.dir/Core/Src/opamp.c.obj
+                0x08001754                MX_OPAMP3_Init
  .text.HAL_OPAMP_MspInit
-                0x080017d0       0x9c CMakeFiles/HardHack.dir/Core/Src/opamp.c.obj
-                0x080017d0                HAL_OPAMP_MspInit
+                0x08001788       0x9c CMakeFiles/HardHack.dir/Core/Src/opamp.c.obj
+                0x08001788                HAL_OPAMP_MspInit
  .text.MX_TIM2_Init
-                0x0800186c       0x70 CMakeFiles/HardHack.dir/Core/Src/tim.c.obj
-                0x0800186c                MX_TIM2_Init
+                0x08001824       0x70 CMakeFiles/HardHack.dir/Core/Src/tim.c.obj
+                0x08001824                MX_TIM2_Init
  .text.MX_TIM3_Init
-                0x080018dc       0x70 CMakeFiles/HardHack.dir/Core/Src/tim.c.obj
-                0x080018dc                MX_TIM3_Init
+                0x08001894       0x70 CMakeFiles/HardHack.dir/Core/Src/tim.c.obj
+                0x08001894                MX_TIM3_Init
  .text.NMI_Handler
-                0x0800194c        0x2 CMakeFiles/HardHack.dir/Core/Src/stm32g4xx_it.c.obj
-                0x0800194c                NMI_Handler
+                0x08001904        0x2 CMakeFiles/HardHack.dir/Core/Src/stm32g4xx_it.c.obj
+                0x08001904                NMI_Handler
  .text.HardFault_Handler
-                0x0800194e        0x2 CMakeFiles/HardHack.dir/Core/Src/stm32g4xx_it.c.obj
-                0x0800194e                HardFault_Handler
+                0x08001906        0x2 CMakeFiles/HardHack.dir/Core/Src/stm32g4xx_it.c.obj
+                0x08001906                HardFault_Handler
  .text.MemManage_Handler
-                0x08001950        0x2 CMakeFiles/HardHack.dir/Core/Src/stm32g4xx_it.c.obj
-                0x08001950                MemManage_Handler
+                0x08001908        0x2 CMakeFiles/HardHack.dir/Core/Src/stm32g4xx_it.c.obj
+                0x08001908                MemManage_Handler
  .text.BusFault_Handler
-                0x08001952        0x2 CMakeFiles/HardHack.dir/Core/Src/stm32g4xx_it.c.obj
-                0x08001952                BusFault_Handler
+                0x0800190a        0x2 CMakeFiles/HardHack.dir/Core/Src/stm32g4xx_it.c.obj
+                0x0800190a                BusFault_Handler
  .text.UsageFault_Handler
-                0x08001954        0x2 CMakeFiles/HardHack.dir/Core/Src/stm32g4xx_it.c.obj
-                0x08001954                UsageFault_Handler
+                0x0800190c        0x2 CMakeFiles/HardHack.dir/Core/Src/stm32g4xx_it.c.obj
+                0x0800190c                UsageFault_Handler
  .text.SVC_Handler
-                0x08001956        0x2 CMakeFiles/HardHack.dir/Core/Src/stm32g4xx_it.c.obj
-                0x08001956                SVC_Handler
+                0x0800190e        0x2 CMakeFiles/HardHack.dir/Core/Src/stm32g4xx_it.c.obj
+                0x0800190e                SVC_Handler
  .text.DebugMon_Handler
-                0x08001958        0x2 CMakeFiles/HardHack.dir/Core/Src/stm32g4xx_it.c.obj
-                0x08001958                DebugMon_Handler
+                0x08001910        0x2 CMakeFiles/HardHack.dir/Core/Src/stm32g4xx_it.c.obj
+                0x08001910                DebugMon_Handler
  .text.PendSV_Handler
-                0x0800195a        0x2 CMakeFiles/HardHack.dir/Core/Src/stm32g4xx_it.c.obj
-                0x0800195a                PendSV_Handler
+                0x08001912        0x2 CMakeFiles/HardHack.dir/Core/Src/stm32g4xx_it.c.obj
+                0x08001912                PendSV_Handler
  .text.SysTick_Handler
-                0x0800195c        0x4 CMakeFiles/HardHack.dir/Core/Src/stm32g4xx_it.c.obj
-                0x0800195c                SysTick_Handler
+                0x08001914        0x4 CMakeFiles/HardHack.dir/Core/Src/stm32g4xx_it.c.obj
+                0x08001914                SysTick_Handler
  .text.DMA1_Channel1_IRQHandler
-                0x08001960       0x74 CMakeFiles/HardHack.dir/Core/Src/stm32g4xx_it.c.obj
-                0x08001960                DMA1_Channel1_IRQHandler
+                0x08001918       0x74 CMakeFiles/HardHack.dir/Core/Src/stm32g4xx_it.c.obj
+                0x08001918                DMA1_Channel1_IRQHandler
  .text.DMA1_Channel2_IRQHandler
-                0x080019d4       0x74 CMakeFiles/HardHack.dir/Core/Src/stm32g4xx_it.c.obj
-                0x080019d4                DMA1_Channel2_IRQHandler
+                0x0800198c       0x70 CMakeFiles/HardHack.dir/Core/Src/stm32g4xx_it.c.obj
+                0x0800198c                DMA1_Channel2_IRQHandler
  .text.DMA1_Channel3_IRQHandler
-                0x08001a48       0x78 CMakeFiles/HardHack.dir/Core/Src/stm32g4xx_it.c.obj
-                0x08001a48                DMA1_Channel3_IRQHandler
+                0x080019fc       0x80 CMakeFiles/HardHack.dir/Core/Src/stm32g4xx_it.c.obj
+                0x080019fc                DMA1_Channel3_IRQHandler
  .text.HAL_MspInit
-                0x08001ac0       0x40 CMakeFiles/HardHack.dir/Core/Src/stm32g4xx_hal_msp.c.obj
-                0x08001ac0                HAL_MspInit
+                0x08001a7c       0x40 CMakeFiles/HardHack.dir/Core/Src/stm32g4xx_hal_msp.c.obj
+                0x08001a7c                HAL_MspInit
  .text.Reset_Handler
-                0x08001b00       0x50 CMakeFiles/HardHack.dir/startup_stm32g474xx.s.obj
-                0x08001b00                Reset_Handler
+                0x08001abc       0x50 CMakeFiles/HardHack.dir/startup_stm32g474xx.s.obj
+                0x08001abc                Reset_Handler
  .text.Default_Handler
-                0x08001b50        0x2 CMakeFiles/HardHack.dir/startup_stm32g474xx.s.obj
-                0x08001b50                RTC_Alarm_IRQHandler
-                0x08001b50                EXTI2_IRQHandler
-                0x08001b50                TIM8_TRG_COM_IRQHandler
-                0x08001b50                TIM8_CC_IRQHandler
-                0x08001b50                HRTIM1_Master_IRQHandler
-                0x08001b50                SPI4_IRQHandler
-                0x08001b50                FDCAN3_IT0_IRQHandler
-                0x08001b50                TIM1_CC_IRQHandler
-                0x08001b50                HRTIM1_FLT_IRQHandler
-                0x08001b50                HRTIM1_TIMF_IRQHandler
-                0x08001b50                USB_HP_IRQHandler
-                0x08001b50                CORDIC_IRQHandler
-                0x08001b50                HRTIM1_TIMD_IRQHandler
-                0x08001b50                DMA2_Channel8_IRQHandler
-                0x08001b50                EXTI3_IRQHandler
-                0x08001b50                I2C3_ER_IRQHandler
-                0x08001b50                EXTI0_IRQHandler
-                0x08001b50                I2C2_EV_IRQHandler
-                0x08001b50                FPU_IRQHandler
-                0x08001b50                FDCAN1_IT1_IRQHandler
-                0x08001b50                TIM1_UP_TIM16_IRQHandler
-                0x08001b50                ADC1_2_IRQHandler
-                0x08001b50                HRTIM1_TIME_IRQHandler
-                0x08001b50                SPI1_IRQHandler
-                0x08001b50                TIM6_DAC_IRQHandler
-                0x08001b50                HRTIM1_TIMC_IRQHandler
-                0x08001b50                TIM8_UP_IRQHandler
-                0x08001b50                DMA2_Channel2_IRQHandler
-                0x08001b50                DMA1_Channel4_IRQHandler
-                0x08001b50                TIM20_TRG_COM_IRQHandler
-                0x08001b50                USART3_IRQHandler
-                0x08001b50                DMA1_Channel7_IRQHandler
-                0x08001b50                UART5_IRQHandler
-                0x08001b50                ADC3_IRQHandler
-                0x08001b50                TIM4_IRQHandler
-                0x08001b50                DMA2_Channel1_IRQHandler
-                0x08001b50                QUADSPI_IRQHandler
-                0x08001b50                I2C1_EV_IRQHandler
-                0x08001b50                DMA1_Channel6_IRQHandler
-                0x08001b50                UART4_IRQHandler
-                0x08001b50                DMA2_Channel4_IRQHandler
-                0x08001b50                TIM3_IRQHandler
-                0x08001b50                RCC_IRQHandler
-                0x08001b50                TIM20_UP_IRQHandler
-                0x08001b50                Default_Handler
-                0x08001b50                DMA2_Channel7_IRQHandler
-                0x08001b50                RTC_TAMP_LSECSS_IRQHandler
-                0x08001b50                FMAC_IRQHandler
-                0x08001b50                EXTI15_10_IRQHandler
-                0x08001b50                DMA1_Channel8_IRQHandler
-                0x08001b50                HRTIM1_TIMA_IRQHandler
-                0x08001b50                TIM7_DAC_IRQHandler
-                0x08001b50                FDCAN3_IT1_IRQHandler
-                0x08001b50                TIM5_IRQHandler
-                0x08001b50                UCPD1_IRQHandler
-                0x08001b50                I2C3_EV_IRQHandler
-                0x08001b50                EXTI9_5_IRQHandler
-                0x08001b50                RTC_WKUP_IRQHandler
-                0x08001b50                PVD_PVM_IRQHandler
-                0x08001b50                SPI2_IRQHandler
-                0x08001b50                ADC5_IRQHandler
-                0x08001b50                DMA2_Channel5_IRQHandler
-                0x08001b50                CRS_IRQHandler
-                0x08001b50                DMA1_Channel5_IRQHandler
-                0x08001b50                USB_LP_IRQHandler
-                0x08001b50                EXTI4_IRQHandler
-                0x08001b50                RNG_IRQHandler
-                0x08001b50                HRTIM1_TIMB_IRQHandler
-                0x08001b50                TIM1_TRG_COM_TIM17_IRQHandler
-                0x08001b50                FDCAN2_IT1_IRQHandler
-                0x08001b50                ADC4_IRQHandler
-                0x08001b50                WWDG_IRQHandler
-                0x08001b50                I2C4_EV_IRQHandler
-                0x08001b50                FDCAN2_IT0_IRQHandler
-                0x08001b50                LPUART1_IRQHandler
-                0x08001b50                DMA2_Channel6_IRQHandler
-                0x08001b50                FDCAN1_IT0_IRQHandler
-                0x08001b50                TIM2_IRQHandler
-                0x08001b50                COMP7_IRQHandler
-                0x08001b50                COMP1_2_3_IRQHandler
-                0x08001b50                EXTI1_IRQHandler
-                0x08001b50                USART2_IRQHandler
-                0x08001b50                COMP4_5_6_IRQHandler
-                0x08001b50                TIM20_BRK_IRQHandler
-                0x08001b50                I2C2_ER_IRQHandler
-                0x08001b50                TIM8_BRK_IRQHandler
-                0x08001b50                FLASH_IRQHandler
-                0x08001b50                TIM20_CC_IRQHandler
-                0x08001b50                USART1_IRQHandler
-                0x08001b50                SPI3_IRQHandler
-                0x08001b50                I2C1_ER_IRQHandler
-                0x08001b50                FMC_IRQHandler
-                0x08001b50                LPTIM1_IRQHandler
-                0x08001b50                DMAMUX_OVR_IRQHandler
-                0x08001b50                I2C4_ER_IRQHandler
-                0x08001b50                USBWakeUp_IRQHandler
-                0x08001b50                SAI1_IRQHandler
-                0x08001b50                DMA2_Channel3_IRQHandler
-                0x08001b50                TIM1_BRK_TIM15_IRQHandler
- *fill*         0x08001b52        0x2 
+                0x08001b0c        0x2 CMakeFiles/HardHack.dir/startup_stm32g474xx.s.obj
+                0x08001b0c                RTC_Alarm_IRQHandler
+                0x08001b0c                EXTI2_IRQHandler
+                0x08001b0c                TIM8_TRG_COM_IRQHandler
+                0x08001b0c                TIM8_CC_IRQHandler
+                0x08001b0c                HRTIM1_Master_IRQHandler
+                0x08001b0c                SPI4_IRQHandler
+                0x08001b0c                FDCAN3_IT0_IRQHandler
+                0x08001b0c                TIM1_CC_IRQHandler
+                0x08001b0c                HRTIM1_FLT_IRQHandler
+                0x08001b0c                HRTIM1_TIMF_IRQHandler
+                0x08001b0c                USB_HP_IRQHandler
+                0x08001b0c                CORDIC_IRQHandler
+                0x08001b0c                HRTIM1_TIMD_IRQHandler
+                0x08001b0c                DMA2_Channel8_IRQHandler
+                0x08001b0c                EXTI3_IRQHandler
+                0x08001b0c                I2C3_ER_IRQHandler
+                0x08001b0c                EXTI0_IRQHandler
+                0x08001b0c                I2C2_EV_IRQHandler
+                0x08001b0c                FPU_IRQHandler
+                0x08001b0c                FDCAN1_IT1_IRQHandler
+                0x08001b0c                TIM1_UP_TIM16_IRQHandler
+                0x08001b0c                ADC1_2_IRQHandler
+                0x08001b0c                HRTIM1_TIME_IRQHandler
+                0x08001b0c                SPI1_IRQHandler
+                0x08001b0c                TIM6_DAC_IRQHandler
+                0x08001b0c                HRTIM1_TIMC_IRQHandler
+                0x08001b0c                TIM8_UP_IRQHandler
+                0x08001b0c                DMA2_Channel2_IRQHandler
+                0x08001b0c                DMA1_Channel4_IRQHandler
+                0x08001b0c                TIM20_TRG_COM_IRQHandler
+                0x08001b0c                USART3_IRQHandler
+                0x08001b0c                DMA1_Channel7_IRQHandler
+                0x08001b0c                UART5_IRQHandler
+                0x08001b0c                ADC3_IRQHandler
+                0x08001b0c                TIM4_IRQHandler
+                0x08001b0c                DMA2_Channel1_IRQHandler
+                0x08001b0c                QUADSPI_IRQHandler
+                0x08001b0c                I2C1_EV_IRQHandler
+                0x08001b0c                DMA1_Channel6_IRQHandler
+                0x08001b0c                UART4_IRQHandler
+                0x08001b0c                DMA2_Channel4_IRQHandler
+                0x08001b0c                TIM3_IRQHandler
+                0x08001b0c                RCC_IRQHandler
+                0x08001b0c                TIM20_UP_IRQHandler
+                0x08001b0c                Default_Handler
+                0x08001b0c                DMA2_Channel7_IRQHandler
+                0x08001b0c                RTC_TAMP_LSECSS_IRQHandler
+                0x08001b0c                FMAC_IRQHandler
+                0x08001b0c                EXTI15_10_IRQHandler
+                0x08001b0c                DMA1_Channel8_IRQHandler
+                0x08001b0c                HRTIM1_TIMA_IRQHandler
+                0x08001b0c                TIM7_DAC_IRQHandler
+                0x08001b0c                FDCAN3_IT1_IRQHandler
+                0x08001b0c                TIM5_IRQHandler
+                0x08001b0c                UCPD1_IRQHandler
+                0x08001b0c                I2C3_EV_IRQHandler
+                0x08001b0c                EXTI9_5_IRQHandler
+                0x08001b0c                RTC_WKUP_IRQHandler
+                0x08001b0c                PVD_PVM_IRQHandler
+                0x08001b0c                SPI2_IRQHandler
+                0x08001b0c                ADC5_IRQHandler
+                0x08001b0c                DMA2_Channel5_IRQHandler
+                0x08001b0c                CRS_IRQHandler
+                0x08001b0c                DMA1_Channel5_IRQHandler
+                0x08001b0c                USB_LP_IRQHandler
+                0x08001b0c                EXTI4_IRQHandler
+                0x08001b0c                RNG_IRQHandler
+                0x08001b0c                HRTIM1_TIMB_IRQHandler
+                0x08001b0c                TIM1_TRG_COM_TIM17_IRQHandler
+                0x08001b0c                FDCAN2_IT1_IRQHandler
+                0x08001b0c                ADC4_IRQHandler
+                0x08001b0c                WWDG_IRQHandler
+                0x08001b0c                I2C4_EV_IRQHandler
+                0x08001b0c                FDCAN2_IT0_IRQHandler
+                0x08001b0c                LPUART1_IRQHandler
+                0x08001b0c                DMA2_Channel6_IRQHandler
+                0x08001b0c                FDCAN1_IT0_IRQHandler
+                0x08001b0c                TIM2_IRQHandler
+                0x08001b0c                COMP7_IRQHandler
+                0x08001b0c                COMP1_2_3_IRQHandler
+                0x08001b0c                EXTI1_IRQHandler
+                0x08001b0c                USART2_IRQHandler
+                0x08001b0c                COMP4_5_6_IRQHandler
+                0x08001b0c                TIM20_BRK_IRQHandler
+                0x08001b0c                I2C2_ER_IRQHandler
+                0x08001b0c                TIM8_BRK_IRQHandler
+                0x08001b0c                FLASH_IRQHandler
+                0x08001b0c                TIM20_CC_IRQHandler
+                0x08001b0c                USART1_IRQHandler
+                0x08001b0c                SPI3_IRQHandler
+                0x08001b0c                I2C1_ER_IRQHandler
+                0x08001b0c                FMC_IRQHandler
+                0x08001b0c                LPTIM1_IRQHandler
+                0x08001b0c                DMAMUX_OVR_IRQHandler
+                0x08001b0c                I2C4_ER_IRQHandler
+                0x08001b0c                USBWakeUp_IRQHandler
+                0x08001b0c                SAI1_IRQHandler
+                0x08001b0c                DMA2_Channel3_IRQHandler
+                0x08001b0c                TIM1_BRK_TIM15_IRQHandler
+ *fill*         0x08001b0e        0x2 
  .text.__udivmoddi4
-                0x08001b54      0x2bc C:/PROGRA~2/ARMGNU~1/133167~1.3RE/bin/../lib/gcc/arm-none-eabi/13.3.1/thumb/v7e-m+fp/hard\libgcc.a(_udivmoddi4.o)
-                0x08001b54                __udivmoddi4
- .text.memset   0x08001e10       0x10 C:/PROGRA~2/ARMGNU~1/133167~1.3RE/bin/../lib/gcc/arm-none-eabi/13.3.1/thumb/v7e-m+fp/hard\libg_nano.a(libc_a-memset.o)
-                0x08001e10                memset
+                0x08001b10      0x2bc C:/PROGRA~2/ARMGNU~1/133167~1.3RE/bin/../lib/gcc/arm-none-eabi/13.3.1/thumb/v7e-m+fp/hard\libgcc.a(_udivmoddi4.o)
+                0x08001b10                __udivmoddi4
+ .text.memset   0x08001dcc       0x10 C:/PROGRA~2/ARMGNU~1/133167~1.3RE/bin/../lib/gcc/arm-none-eabi/13.3.1/thumb/v7e-m+fp/hard\libg_nano.a(libc_a-memset.o)
+                0x08001dcc                memset
  .text.__libc_init_array
-                0x08001e20       0x48 C:/PROGRA~2/ARMGNU~1/133167~1.3RE/bin/../lib/gcc/arm-none-eabi/13.3.1/thumb/v7e-m+fp/hard\libg_nano.a(libc_a-init.o)
-                0x08001e20                __libc_init_array
+                0x08001ddc       0x48 C:/PROGRA~2/ARMGNU~1/133167~1.3RE/bin/../lib/gcc/arm-none-eabi/13.3.1/thumb/v7e-m+fp/hard\libg_nano.a(libc_a-init.o)
+                0x08001ddc                __libc_init_array
  *(.glue_7)
- .glue_7        0x08001e68        0x0 linker stubs
+ .glue_7        0x08001e24        0x0 linker stubs
  *(.glue_7t)
- .glue_7t       0x08001e68        0x0 linker stubs
+ .glue_7t       0x08001e24        0x0 linker stubs
  *(.eh_frame)
- .eh_frame      0x08001e68        0x0 C:/PROGRA~2/ARMGNU~1/133167~1.3RE/bin/../lib/gcc/arm-none-eabi/13.3.1/thumb/v7e-m+fp/hard/crtbegin.o
+ .eh_frame      0x08001e24        0x0 C:/PROGRA~2/ARMGNU~1/133167~1.3RE/bin/../lib/gcc/arm-none-eabi/13.3.1/thumb/v7e-m+fp/hard/crtbegin.o
  *(.init)
- .init          0x08001e68        0x4 C:/PROGRA~2/ARMGNU~1/133167~1.3RE/bin/../lib/gcc/arm-none-eabi/13.3.1/thumb/v7e-m+fp/hard/crti.o
-                0x08001e68                _init
- .init          0x08001e6c        0x8 C:/PROGRA~2/ARMGNU~1/133167~1.3RE/bin/../lib/gcc/arm-none-eabi/13.3.1/thumb/v7e-m+fp/hard/crtn.o
+ .init          0x08001e24        0x4 C:/PROGRA~2/ARMGNU~1/133167~1.3RE/bin/../lib/gcc/arm-none-eabi/13.3.1/thumb/v7e-m+fp/hard/crti.o
+                0x08001e24                _init
+ .init          0x08001e28        0x8 C:/PROGRA~2/ARMGNU~1/133167~1.3RE/bin/../lib/gcc/arm-none-eabi/13.3.1/thumb/v7e-m+fp/hard/crtn.o
  *(.fini)
- .fini          0x08001e74        0x4 C:/PROGRA~2/ARMGNU~1/133167~1.3RE/bin/../lib/gcc/arm-none-eabi/13.3.1/thumb/v7e-m+fp/hard/crti.o
-                0x08001e74                _fini
- .fini          0x08001e78        0x8 C:/PROGRA~2/ARMGNU~1/133167~1.3RE/bin/../lib/gcc/arm-none-eabi/13.3.1/thumb/v7e-m+fp/hard/crtn.o
-                0x08001e80                        . = ALIGN (0x4)
-                0x08001e80                        _etext = .
+ .fini          0x08001e30        0x4 C:/PROGRA~2/ARMGNU~1/133167~1.3RE/bin/../lib/gcc/arm-none-eabi/13.3.1/thumb/v7e-m+fp/hard/crti.o
+                0x08001e30                _fini
+ .fini          0x08001e34        0x8 C:/PROGRA~2/ARMGNU~1/133167~1.3RE/bin/../lib/gcc/arm-none-eabi/13.3.1/thumb/v7e-m+fp/hard/crtn.o
+                0x08001e3c                        . = ALIGN (0x4)
+                0x08001e3c                        _etext = .
 
-.vfp11_veneer   0x08001e80        0x0
- .vfp11_veneer  0x08001e80        0x0 linker stubs
+.vfp11_veneer   0x08001e3c        0x0
+ .vfp11_veneer  0x08001e3c        0x0 linker stubs
 
-.v4_bx          0x08001e80        0x0
- .v4_bx         0x08001e80        0x0 linker stubs
+.v4_bx          0x08001e3c        0x0
+ .v4_bx         0x08001e3c        0x0 linker stubs
 
-.iplt           0x08001e80        0x0
- .iplt          0x08001e80        0x0 C:/PROGRA~2/ARMGNU~1/133167~1.3RE/bin/../lib/gcc/arm-none-eabi/13.3.1/thumb/v7e-m+fp/hard/crtbegin.o
+.iplt           0x08001e3c        0x0
+ .iplt          0x08001e3c        0x0 C:/PROGRA~2/ARMGNU~1/133167~1.3RE/bin/../lib/gcc/arm-none-eabi/13.3.1/thumb/v7e-m+fp/hard/crtbegin.o
 
-.rodata         0x08001e80       0x60
-                0x08001e80                        . = ALIGN (0x4)
+.rodata         0x08001e3c       0x60
+                0x08001e3c                        . = ALIGN (0x4)
  *(.rodata)
  *(.rodata*)
  .rodata.APBPrescTable
-                0x08001e80        0x8 cmake/stm32cubemx/CMakeFiles/STM32_Drivers.dir/__/__/Core/Src/system_stm32g4xx.c.obj
-                0x08001e80                APBPrescTable
+                0x08001e3c        0x8 cmake/stm32cubemx/CMakeFiles/STM32_Drivers.dir/__/__/Core/Src/system_stm32g4xx.c.obj
+                0x08001e3c                APBPrescTable
  .rodata.AHBPrescTable
-                0x08001e88       0x10 cmake/stm32cubemx/CMakeFiles/STM32_Drivers.dir/__/__/Core/Src/system_stm32g4xx.c.obj
-                0x08001e88                AHBPrescTable
+                0x08001e44       0x10 cmake/stm32cubemx/CMakeFiles/STM32_Drivers.dir/__/__/Core/Src/system_stm32g4xx.c.obj
+                0x08001e44                AHBPrescTable
  .rodata.LPUART_PRESCALER_TAB
-                0x08001e98       0x18 cmake/stm32cubemx/CMakeFiles/STM32_Drivers.dir/__/__/Drivers/STM32G4xx_HAL_Driver/Src/stm32g4xx_ll_lpuart.c.obj
+                0x08001e54       0x18 cmake/stm32cubemx/CMakeFiles/STM32_Drivers.dir/__/__/Drivers/STM32G4xx_HAL_Driver/Src/stm32g4xx_ll_lpuart.c.obj
  .rodata.USART_PRESCALER_TAB
-                0x08001eb0       0x30 cmake/stm32cubemx/CMakeFiles/STM32_Drivers.dir/__/__/Drivers/STM32G4xx_HAL_Driver/Src/stm32g4xx_ll_usart.c.obj
-                0x08001ee0                        . = ALIGN (0x4)
+                0x08001e6c       0x30 cmake/stm32cubemx/CMakeFiles/STM32_Drivers.dir/__/__/Drivers/STM32G4xx_HAL_Driver/Src/stm32g4xx_ll_usart.c.obj
+                0x08001e9c                        . = ALIGN (0x4)
 
-.ARM.extab      0x08001ee0        0x0
-                0x08001ee0                        . = ALIGN (0x4)
+.ARM.extab      0x08001e9c        0x0
+                0x08001e9c                        . = ALIGN (0x4)
  *(.ARM.extab* .gnu.linkonce.armextab.*)
-                0x08001ee0                        . = ALIGN (0x4)
+                0x08001e9c                        . = ALIGN (0x4)
 
-.ARM            0x08001ee0        0x8
-                0x08001ee0                        . = ALIGN (0x4)
-                0x08001ee0                        __exidx_start = .
+.ARM            0x08001e9c        0x8
+                0x08001e9c                        . = ALIGN (0x4)
+                0x08001e9c                        __exidx_start = .
  *(.ARM.exidx*)
  .ARM.exidx.text.__udivmoddi4
-                0x08001ee0        0x8 C:/PROGRA~2/ARMGNU~1/133167~1.3RE/bin/../lib/gcc/arm-none-eabi/13.3.1/thumb/v7e-m+fp/hard\libgcc.a(_udivmoddi4.o)
-                0x08001ee8                        __exidx_end = .
-                0x08001ee8                        . = ALIGN (0x4)
+                0x08001e9c        0x8 C:/PROGRA~2/ARMGNU~1/133167~1.3RE/bin/../lib/gcc/arm-none-eabi/13.3.1/thumb/v7e-m+fp/hard\libgcc.a(_udivmoddi4.o)
+                0x08001ea4                        __exidx_end = .
+                0x08001ea4                        . = ALIGN (0x4)
 
-.preinit_array  0x08001ee8        0x0
-                0x08001ee8                        . = ALIGN (0x4)
-                0x08001ee8                        PROVIDE (__preinit_array_start = .)
+.preinit_array  0x08001ea4        0x0
+                0x08001ea4                        . = ALIGN (0x4)
+                0x08001ea4                        PROVIDE (__preinit_array_start = .)
  *(.preinit_array*)
-                0x08001ee8                        PROVIDE (__preinit_array_end = .)
-                0x08001ee8                        . = ALIGN (0x4)
+                0x08001ea4                        PROVIDE (__preinit_array_end = .)
+                0x08001ea4                        . = ALIGN (0x4)
 
-.init_array     0x08001ee8        0x4
-                0x08001ee8                        . = ALIGN (0x4)
-                0x08001ee8                        PROVIDE (__init_array_start = .)
+.init_array     0x08001ea4        0x4
+                0x08001ea4                        . = ALIGN (0x4)
+                0x08001ea4                        PROVIDE (__init_array_start = .)
  *(SORT_BY_NAME(.init_array.*))
  *(.init_array*)
- .init_array    0x08001ee8        0x4 C:/PROGRA~2/ARMGNU~1/133167~1.3RE/bin/../lib/gcc/arm-none-eabi/13.3.1/thumb/v7e-m+fp/hard/crtbegin.o
-                0x08001eec                        PROVIDE (__init_array_end = .)
-                0x08001eec                        . = ALIGN (0x4)
+ .init_array    0x08001ea4        0x4 C:/PROGRA~2/ARMGNU~1/133167~1.3RE/bin/../lib/gcc/arm-none-eabi/13.3.1/thumb/v7e-m+fp/hard/crtbegin.o
+                0x08001ea8                        PROVIDE (__init_array_end = .)
+                0x08001ea8                        . = ALIGN (0x4)
 
-.fini_array     0x08001eec        0x4
-                0x08001eec                        . = ALIGN (0x4)
+.fini_array     0x08001ea8        0x4
+                0x08001ea8                        . = ALIGN (0x4)
                 [!provide]                        PROVIDE (__fini_array_start = .)
  *(SORT_BY_NAME(.fini_array.*))
  *(.fini_array*)
- .fini_array    0x08001eec        0x4 C:/PROGRA~2/ARMGNU~1/133167~1.3RE/bin/../lib/gcc/arm-none-eabi/13.3.1/thumb/v7e-m+fp/hard/crtbegin.o
+ .fini_array    0x08001ea8        0x4 C:/PROGRA~2/ARMGNU~1/133167~1.3RE/bin/../lib/gcc/arm-none-eabi/13.3.1/thumb/v7e-m+fp/hard/crtbegin.o
                 [!provide]                        PROVIDE (__fini_array_end = .)
-                0x08001ef0                        . = ALIGN (0x4)
-                0x08001ef0                        _sidata = LOADADDR (.data)
+                0x08001eac                        . = ALIGN (0x4)
+                0x08001eac                        _sidata = LOADADDR (.data)
 
-.rel.dyn        0x08001ef0        0x0
- .rel.iplt      0x08001ef0        0x0 C:/PROGRA~2/ARMGNU~1/133167~1.3RE/bin/../lib/gcc/arm-none-eabi/13.3.1/thumb/v7e-m+fp/hard/crtbegin.o
+.rel.dyn        0x08001eac        0x0
+ .rel.iplt      0x08001eac        0x0 C:/PROGRA~2/ARMGNU~1/133167~1.3RE/bin/../lib/gcc/arm-none-eabi/13.3.1/thumb/v7e-m+fp/hard/crtbegin.o
 
-.data           0x20000000        0xc load address 0x08001ef0
+.data           0x20000000        0xc load address 0x08001eac
                 0x20000000                        . = ALIGN (0x4)
                 0x20000000                        _sdata = .
  *(.data)
@@ -1505,16 +1505,16 @@ LOAD C:/PROGRA~2/ARMGNU~1/133167~1.3RE/bin/../lib/gcc/arm-none-eabi/13.3.1/thumb
                 0x2000000c                        . = ALIGN (0x4)
 
 .tm_clone_table
-                0x2000000c        0x0 load address 0x08001efc
+                0x2000000c        0x0 load address 0x08001eb8
  .tm_clone_table
                 0x2000000c        0x0 C:/PROGRA~2/ARMGNU~1/133167~1.3RE/bin/../lib/gcc/arm-none-eabi/13.3.1/thumb/v7e-m+fp/hard/crtbegin.o
  .tm_clone_table
                 0x2000000c        0x0 C:/PROGRA~2/ARMGNU~1/133167~1.3RE/bin/../lib/gcc/arm-none-eabi/13.3.1/thumb/v7e-m+fp/hard/crtend.o
 
-.igot.plt       0x2000000c        0x0 load address 0x08001efc
+.igot.plt       0x2000000c        0x0 load address 0x08001eb8
  .igot.plt      0x2000000c        0x0 C:/PROGRA~2/ARMGNU~1/133167~1.3RE/bin/../lib/gcc/arm-none-eabi/13.3.1/thumb/v7e-m+fp/hard/crtbegin.o
 
-.tdata          0x2000000c        0x0 load address 0x08001efc
+.tdata          0x2000000c        0x0 load address 0x08001eb8
  *(.tdata .tdata.* .gnu.linkonce.td.*)
                 0x2000000c                        . = ALIGN (0x4)
                 0x2000000c                        _edata = .
@@ -1531,7 +1531,7 @@ LOAD C:/PROGRA~2/ARMGNU~1/133167~1.3RE/bin/../lib/gcc/arm-none-eabi/13.3.1/thumb
                 [!provide]                        PROVIDE (__data_source_end = __tdata_source_end)
                 [!provide]                        PROVIDE (__data_source_size = (__data_source_end - __data_source))
 
-.tbss           0x2000000c        0x0 load address 0x08001efc
+.tbss           0x2000000c        0x0 load address 0x08001eb8
                 0x2000000c                        _sbss = .
                 0x2000000c                        __bss_start__ = _sbss
  *(.tbss .tbss.*)
@@ -1548,7 +1548,7 @@ LOAD C:/PROGRA~2/ARMGNU~1/133167~1.3RE/bin/../lib/gcc/arm-none-eabi/13.3.1/thumb
                 [!provide]                        PROVIDE (__arm32_tls_tcb_offset = MAX (0x8, __tls_align))
                 [!provide]                        PROVIDE (__arm64_tls_tcb_offset = MAX (0x10, __tls_align))
 
-.bss            0x2000000c     0xeb34 load address 0x08001efc
+.bss            0x2000000c     0xeb34 load address 0x08001eb8
  *(.bss)
  *(.bss*)
  .bss.completed.1
@@ -1582,7 +1582,7 @@ LOAD C:/PROGRA~2/ARMGNU~1/133167~1.3RE/bin/../lib/gcc/arm-none-eabi/13.3.1/thumb
                 [!provide]                        PROVIDE (__bss_size = (__bss_end - __bss_start))
 
 ._user_heap_stack
-                0x2000eb40      0x600 load address 0x08001efc
+                0x2000eb40      0x600 load address 0x08001eb8
                 0x2000eb40                        . = ALIGN (0x8)
                 [!provide]                        PROVIDE (end = .)
                 0x2000eb40                        PROVIDE (_end = .)

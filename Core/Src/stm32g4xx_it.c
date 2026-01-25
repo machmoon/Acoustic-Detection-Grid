@@ -235,7 +235,7 @@ void DMA1_Channel1_IRQHandler(void)
 void DMA1_Channel2_IRQHandler(void)
 {
   /* USER CODE BEGIN DMA1_Channel2_IRQn 0 */
-  LL_GPIO_SetOutputPin(GPIOA, LL_GPIO_PIN_5);
+  LL_GPIO_SetOutputPin(GPIOA, LL_GPIO_PIN_6);
   if (LL_DMA_IsActiveFlag_HT2(DMA1)) {
     LL_DMA_ClearFlag_HT2(DMA1);
     for (uint16_t i = 0; i < BUF_SIZE/2; i++) {
@@ -250,7 +250,7 @@ void DMA1_Channel2_IRQHandler(void)
       LL_USART_TransmitData8(USART1, adc2_data[i]);
     }
   }
-  LL_GPIO_ResetOutputPin(GPIOA, LL_GPIO_PIN_5);
+  LL_GPIO_ResetOutputPin(GPIOA, LL_GPIO_PIN_6);
   /* USER CODE END DMA1_Channel2_IRQn 0 */
   /* USER CODE BEGIN DMA1_Channel2_IRQn 1 */
 
@@ -264,6 +264,7 @@ void DMA1_Channel3_IRQHandler(void)
 {
   /* USER CODE BEGIN DMA1_Channel3_IRQn 0 */
   LL_GPIO_SetOutputPin(GPIOA, LL_GPIO_PIN_5);
+  LL_GPIO_SetOutputPin(GPIOA, LL_GPIO_PIN_6);
   if (LL_DMA_IsActiveFlag_HT3(DMA1)) {
     LL_DMA_ClearFlag_HT3(DMA1);
     for (uint16_t i = 0; i < BUF_SIZE/2; i++) {
@@ -279,6 +280,7 @@ void DMA1_Channel3_IRQHandler(void)
     }
   }
   LL_GPIO_ResetOutputPin(GPIOA, LL_GPIO_PIN_5);
+  LL_GPIO_ResetOutputPin(GPIOA, LL_GPIO_PIN_6);
   /* USER CODE END DMA1_Channel3_IRQn 0 */
   /* USER CODE BEGIN DMA1_Channel3_IRQn 1 */
 
