@@ -4,4 +4,6 @@ numpy
 scipy
 google-generativeai
 python-dotenv
+paho-mqtt
+sounddevice
 

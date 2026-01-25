@@ -11,8 +11,10 @@ import tensorflow_hub as hub
 import numpy as np
 import csv
 import scipy.signal
+import sounddevice as sd
 from scipy.io import wavfile
 from dotenv import load_dotenv
+
 
 # Load API key from .env file
 load_dotenv()
@@ -106,6 +108,12 @@ Provide a brief, helpful 1-2 sentence description of what this sound means in a 
         print(f"⚠️  Gemini API error: {e}")
         return None
 
+def play_audio(wav_data_processed, sample_rate_processed):
+    print("\n Playing Audio...")
+    sd.play(wav_data_processed, sample_rate_processed)
+    sd.wait()
+
+
 if __name__ == '__main__':
     # Get audio file from command line or use default
     wav_file = sys.argv[1] if len(sys.argv) > 1 else 'breakin.wav'
@@ -115,6 +123,8 @@ if __name__ == '__main__':
     
     # Process audio for YAMNet
     sample_rate_processed, wav_data_processed = ensure_sample_rate(sample_rate, wav_data)
+
+    play_audio(wav_data_processed, sample_rate_processed)
     
     # Classify audio
     print("\n🔍 Running classification...")
