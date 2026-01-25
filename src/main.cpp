@@ -14,7 +14,7 @@ const char * password = "qwertyuiop";
 
 const char * mqtt_server = "test.mosquitto.org";
 
-const uint16_t mqtt_port = 443;
+const uint16_t mqtt_port = 1883;
 
 WiFiClient espClient;
 PubSubClient client(espClient);
@@ -30,8 +30,6 @@ void setup() {
   pinMode(LED_BUILTIN, OUTPUT);
 
   Serial.begin(250000);
-  delay(5000);
-  Serial.println("Test");
 
   initUART();
 
@@ -43,7 +41,6 @@ void setup() {
 
 void loop() {
   
-  Serial.println("Test");
   if (!client.connected()) {
     // Reconnect to MQTT broker
     if (client.connect("ESP32Client")) {
@@ -56,6 +53,7 @@ void loop() {
   client.loop();
 
   client.publish("goontronics/esp32", "Hello from ESP32");
+  Serial.println("Message Published");
   delay(2000);
   
 }
