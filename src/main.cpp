@@ -8,13 +8,22 @@
 #define UART_TX D6
 #define UART_RX D7
 
+#define UART_BUF_LENGTH 200000
+
 // WiFi related parameters and setups
 const char * ssid     = "Vamsi_Phone";
 const char * password = "qwertyuiop";
 
 const char * mqtt_server = "test.mosquitto.org";
 
+const char * mqtt_topic = "goontronics/esp32";
+const char * mqtt_message = "gooner tech";
+
 const uint16_t mqtt_port = 1883;
+
+uint8_t uartBufferMic_1[UART_BUF_LENGTH];
+uint8_t uartBufferMic_2[UART_BUF_LENGTH];
+uint8_t uartBufferMic_3[UART_BUF_LENGTH];
 
 WiFiClient espClient;
 PubSubClient client(espClient);
@@ -22,6 +31,7 @@ PubSubClient client(espClient);
 void serialEvent1();
 void initWiFi();
 void initUART();
+bool publishMessage(const char* topic, const char* message);
 // void initFile();
 //void UARTtoFileDump();
 
@@ -41,28 +51,7 @@ void setup() {
 
 void loop() {
   
-  if (!client.connected()) {
-  Serial.print("MQTT not connected, state=");
-  Serial.println(client.state());
-
-  String cid = "xiao-" + String((uint32_t)ESP.getEfuseMac(), HEX); // unique ID
-    if (client.connect(cid.c_str())) {
-      Serial.println("Connected to MQTT broker");
-      client.subscribe("goontronics/esp32");
-    } else {
-      Serial.print("Connect failed, state=");
-      Serial.println(client.state());
-      delay(1000);
-      return; // don't try to publish
-    }
-  }
-  
-  client.loop();
-
-  bool publishSuccess = client.publish("goontronics/esp32", "Hello from ESP32");
-
-  Serial.print("Publish state: ");
-  Serial.println(publishSuccess ? "Success" : "Failed");
+  publishMessage(mqtt_topic, mqtt_message);
   delay(2000);
   
 }
@@ -114,7 +103,37 @@ void initWiFi() {
   }
 
   // Subscribe to MQTT topic
-  client.subscribe("goontronics/esp32");
+  client.subscribe(mqtt_topic);
+}
+
+bool publishMessage(const char* topic, const char* message) {
+  if (!client.connected()) {
+  Serial.print("MQTT not connected, state=");
+  Serial.println(client.state());
+
+  String cid = "xiao-" + String((uint32_t)ESP.getEfuseMac(), HEX); // unique ID
+    if (client.connect(cid.c_str())) {
+      Serial.println("Connected to MQTT broker");
+      client.subscribe(topic);
+    } else {
+      Serial.print("Connect failed, state=");
+      Serial.println(client.state());
+      delay(1000);
+      return false; // don't try to publish
+    }
+  }
+  
+  client.loop();
+
+  bool publishSuccess = client.publish(topic, message);
+  if(!publishSuccess) {
+    Serial.println("Publish failed");
+    return false;
+  }
+
+  //Serial.print("Publish state: ");
+  //Serial.println(publishSuccess ? "Success" : "Failed");
+  return true;
 }
 
 /*
@@ -140,3 +159,4 @@ void UARTtoFileDump() {
 }
 
 */
+
