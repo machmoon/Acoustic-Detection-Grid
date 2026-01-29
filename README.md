@@ -3,7 +3,7 @@
 A distributed acoustic threat detection system for home security. EchoGuard uses a network of microcontrollers with ML-powered sound classification to detect dangers like glass breaking, smoke alarms, and intrusions—then alerts homeowners with AI-generated voice notifications.
 
 
-![Device](IMG_2150.png)
+![Device](IMG_2150.jpg)
 ![DeviceWiring](IMG_6338.png)
 ![Dashboard](Screenshot_2026-01-25_at_1.54.23_AM.png)
 ![System Architecture](Figure_1%20(1).png)
