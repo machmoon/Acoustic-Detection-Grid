@@ -2,7 +2,7 @@
 
 HearSay is a camera-free acoustic security system that captures audio from distributed edge nodes, classifies safety-critical events in real time, and delivers actionable alerts through a live web dashboard.
 
-For software engineering roles, the project demonstrates realtime backend systems, event-driven architecture, frontend alerting, and ML integration. For hardware and embedded roles, it demonstrates ADC/DMA sampling, microcontroller communication, signal-chain debugging, and prototype integration.
+The project combines embedded audio capture, realtime messaging, backend inference, signal processing, and frontend alerting into a single end-to-end system.
 
 <p align="center">
   <img src="docs/readme/dashboard.png" alt="HearSay dashboard" width="900" />
@@ -17,21 +17,21 @@ For software engineering roles, the project demonstrates realtime backend system
 - Pushes live detections, confidence scores, and event history to a realtime dashboard.
 - Optionally generates contextual summaries and voice alerts with `Gemini` and `ElevenLabs`.
 
-## Recruiter Snapshot
+## Project Snapshot
 
 - `Problem`: traditional home security systems are camera-heavy, reactive, and often poor at describing what actually happened.
 - `System`: embedded audio capture + realtime messaging + server-side inference + browser-based alerting.
 - `Engineering focus`: distributed systems, embedded sampling, signal processing, ML integration, and operator-facing UI.
 - `Scope`: built as an end-to-end prototype rather than an isolated firmware demo or model notebook.
 
-## Why It Stands Out
+## Core Contributions
 
 - `Software engineering`: built a realtime ingestion and alerting pipeline using `MQTT`, `Flask`, and `Socket.IO`.
 - `Embedded systems`: handled high-rate microphone sampling, ADC/DMA buffering, and microcontroller-to-microcontroller transport.
 - `ML systems`: integrated audio preprocessing, inference, confidence gating, and false-positive reduction into a usable product flow.
 - `Hardware debugging`: redesigned the analog microphone front-end to fix grounding, clipping, and transient issues before inference.
 
-## Selected Engineering Work
+## Engineering Breakdown
 
 ### Software
 
