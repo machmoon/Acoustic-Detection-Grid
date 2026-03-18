@@ -1,4 +1,4 @@
-# EchoGuard
+# HearSay
 
 A distributed acoustic threat detection system for home security. EchoGuard uses a network of microcontrollers with ML-powered sound classification to detect dangers like glass breaking, smoke alarms, and intrusions—then alerts homeowners with AI-generated voice notifications.
 
