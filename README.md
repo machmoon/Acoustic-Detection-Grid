@@ -5,7 +5,7 @@ A distributed acoustic threat detection system for home security. EchoGuard uses
 
 ![Device](IMG_2150.jpg)
 ![DeviceWiring](IMG_6338.png)
-![Dashboard](Screenshot_2026-01-25_at_1.54.23_AM.png)
+![Dashboard](dashboard.png)
 ![System Architecture](Figure_1%20(1).png)
 
 ## Overview
